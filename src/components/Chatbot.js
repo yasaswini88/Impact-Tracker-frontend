@@ -130,7 +130,7 @@ const Chatbot = ({
                                         mb: message.text.includes("Negative Review Alert") ? 1 : 2,
                                     }}
                                 >
-                                    {message.text.includes("Do you want some call campaign suggestions?") && (
+                                    {message.text.includes("Would you like some call campaign suggestions") && (
                                         <Box sx={{ display: "flex", gap: 1, ml: 2, mb: 2 }}>
                                             <Button variant="outlined" onClick={handleCallCampaignNo}>
                                                 NO

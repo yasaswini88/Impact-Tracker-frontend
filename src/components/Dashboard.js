@@ -24,13 +24,17 @@ import {
     Box,
     Fab,
 } from "@mui/material";
+import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
 import ChatIcon from "@mui/icons-material/Chat";
 import { Drawer } from "@mui/material";
 import Chatbot from "./Chatbot";
 import { Snackbar, Alert } from "@mui/material";
+import FormGroup from "@mui/material/FormGroup";
 
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
 
 
 
@@ -92,6 +96,13 @@ const Dashboard = () => {
         positivePercentage: 0,
     });
 
+    const [openCampaignForm, setOpenCampaignForm] = useState(false);
+
+    // 2) States for the form input
+    const [selectedStrategies, setSelectedStrategies] = useState([]); // array of IDs
+    const [campaignVoice, setCampaignVoice] = useState("");
+    const [targetAudience, setTargetAudience] = useState("ALL"); // default?
+
     // Appointment form
     const [newCustomerName, setNewCustomerName] = useState("");
     const [newApptDate, setNewApptDate] = useState("");
@@ -100,7 +111,7 @@ const Dashboard = () => {
     const [openNewAppt, setOpenNewAppt] = useState(false);
     const [showMoreOpen, setShowMoreOpen] = useState(false);
 
-    const[callVolumeTrend, setCallVolumeTrend] = useState(null);
+    const [callVolumeTrend, setCallVolumeTrend] = useState(null);
 
     // Some chart data
     const [callVolume, setCallVolume] = useState({
@@ -123,7 +134,7 @@ const Dashboard = () => {
             dataLabels: { enabled: false },
             stroke: { curve: "smooth" },
             xaxis: {
-                categories: ["Feb", "March", "April", "May", "June", "July","Aug"],
+                categories: ["Feb", "March", "April", "May", "June", "July", "Aug"],
                 title: { text: "Last 6 Months" },
             },
             yaxis: {
@@ -325,44 +336,44 @@ const Dashboard = () => {
     // YES -> fetch/generate insights, show them
     const handleYesClick = async () => {
         try {
-          // 1) Mark userResponse = Y
-          const url = `http://52.3.145.159:8080/api/v1/review-confirmation/respond?businessId=${businessId}&userResponse=Y`;
-          await axios.post(url);
-      
-          // 2) fetch the new confirmation & insights
-          await fetchReviewConfirmation();  
-          // Instead of `await fetchOrGenerateInsights()` 
-          //   returning them in state, do it directly:
-          const insightsData = await getInsightsDirectly();
-      
-          // 3) Push “We have fetched your insights!” 
-          setChatMessages((prev) => [
-            ...prev, 
-            { sender: "bot", text: "We have fetched your insights! Check below..." }
-          ]);
-      
-          // 4) Build a single big string from insightsData 
-          if (insightsData) {
-            const insightsText = 
-              "Review Insights\n\n" +
-              `Positive Points: ${insightsData.positivePoints}\n` +
-              `Negative Points: ${insightsData.negativePoints}\n` +
-              `Overall Summary: ${insightsData.insights}`;
-      
+            // 1) Mark userResponse = Y
+            const url = `http://52.3.145.159:8080/api/v1/review-confirmation/respond?businessId=${businessId}&userResponse=Y`;
+            await axios.post(url);
+
+            // 2) fetch the new confirmation & insights
+            await fetchReviewConfirmation();
+            // Instead of `await fetchOrGenerateInsights()` 
+            //   returning them in state, do it directly:
+            const insightsData = await getInsightsDirectly();
+
+            // 3) Push “We have fetched your insights!” 
             setChatMessages((prev) => [
-              ...prev,
-              { sender: "bot", text: insightsText }
+                ...prev,
+                { sender: "bot", text: "We have fetched your insights! Check below..." }
             ]);
-          }
-      
-          // 5) Now prompt for call campaign 
-          promptForCallCampaign();
-      
+
+            // 4) Build a single big string from insightsData 
+            if (insightsData) {
+                const insightsText =
+                    "Review Insights\n\n" +
+                    `Positive Points: ${insightsData.positivePoints}\n` +
+                    `Negative Points: ${insightsData.negativePoints}\n` +
+                    `Overall Summary: ${insightsData.insights}`;
+
+                setChatMessages((prev) => [
+                    ...prev,
+                    { sender: "bot", text: insightsText }
+                ]);
+            }
+
+            // 5) Now prompt for call campaign 
+            promptForCallCampaign();
+
         } catch (err) {
-          console.error("Error in handleYesClick:", err);
+            console.error("Error in handleYesClick:", err);
         }
-      };
-      
+    };
+
 
     // NO -> don't fetch insights, close chatbot, optionally add a message
     const handleNoClick = async () => {
@@ -395,26 +406,26 @@ const Dashboard = () => {
 
     const getInsightsDirectly = async () => {
         try {
-          // Try GET /api/v1/insights/{businessId}
-          const getUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
-          const getResp = await axios.get(getUrl);
-          return getResp.data;  // your { positivePoints, negativePoints, insights }
+            // Try GET /api/v1/insights/{businessId}
+            const getUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
+            const getResp = await axios.get(getUrl);
+            return getResp.data;  // your { positivePoints, negativePoints, insights }
         } catch (err) {
-          // If 404 => do generate => then re-fetch
-          if (err.response && err.response.status === 404) {
-            const postUrl = `http://52.3.145.159:8080/api/v1/insights/generate/${businessId}`;
-            await axios.post(postUrl);
-      
-            const finalUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
-            const finalGet = await axios.get(finalUrl);
-            return finalGet.data; 
-          } else {
-            console.error("Could not fetch or generate insights:", err);
-            return null;
-          }
+            // If 404 => do generate => then re-fetch
+            if (err.response && err.response.status === 404) {
+                const postUrl = `http://52.3.145.159:8080/api/v1/insights/generate/${businessId}`;
+                await axios.post(postUrl);
+
+                const finalUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
+                const finalGet = await axios.get(finalUrl);
+                return finalGet.data;
+            } else {
+                console.error("Could not fetch or generate insights:", err);
+                return null;
+            }
         }
-      };
-      
+    };
+
 
     // In Dashboard.js (or pass them down similarly to handleYesClick/handleNoClick)
     const handleCallCampaignYes = async () => {
@@ -436,6 +447,8 @@ const Dashboard = () => {
             // NOW add the fetch for strategies
             const strategiesUrl = `http://52.3.145.159:8080/api/v1/call-campaign-strategies`;
             const strategiesResp = await axios.get(strategiesUrl);
+            console.log("Fetched strategies:", strategiesResp.data);
+
 
             // Filter to only the one named “Call campaigns to collect feedback”
             setCallCampaignStrategies(strategiesResp.data);
@@ -495,7 +508,7 @@ const Dashboard = () => {
 
         const message = {
             sender: 'bot',
-            text: "As you agreed for fetching Google reviews, and as per the results we shared. Do you want some call campaign suggestions?"
+            text: "Would you like some call campaign suggestions based on the Google reviews we retrieved and the results we shared?"
         };
         setChatMessages((prev) => [...prev, message]);
         setShowChatbot(true);
@@ -572,6 +585,45 @@ const Dashboard = () => {
         setChatInput("");
     };
 
+
+    const handleSaveCampaignSelection = async () => {
+        try {
+            // Build the request body
+            const requestBody = {
+                businessId: parseInt(businessId),
+                strategyIds: selectedStrategies,    // array of IDs
+                callCampaignVoice: campaignVoice,
+                targetAudience: targetAudience,
+            };
+
+            const response = await axios.post(
+                "http://52.3.145.159:8080/api/v1/call-campaign-selection",
+                requestBody
+            );
+
+            console.log("Campaign selection saved:", response.data);
+
+            // Show a snackbar or message
+            setSnackMessage("Campaign selection saved!");
+            setSnackSeverity("success");
+            setSnackOpen(true);
+
+            // Close the dialog
+            setOpenCampaignForm(false);
+
+            // Optionally reset form fields
+            setSelectedStrategies([]);
+            setCampaignVoice("");
+            setTargetAudience("ALL");
+        } catch (error) {
+            console.error("Error saving campaign selection:", error);
+            setSnackMessage("Could not save campaign selection.");
+            setSnackSeverity("error");
+            setSnackOpen(true);
+        }
+    };
+
+
     // useEffect
     useEffect(() => {
         if (!businessId) return;
@@ -586,36 +638,53 @@ const Dashboard = () => {
     useEffect(() => {
         // If you have businessId from localStorage
         if (!businessId) {
-          console.log("No businessId found, skip callVolumeTrend fetch");
-          return;
+            console.log("No businessId found, skip callVolumeTrend fetch");
+            return;
         }
-      
+
         async function fetchCallVolumeTrend() {
-          try {
-            // Now the request body has only the arrays
-            const requestBody = {
-              answered: [42, 109, 100, 31, 40, 28, 14],
-              missed: [11, 34, 52, 32, 45, 32, 20],
-              voicemail: [11, 32, 52, 41, 28, 32, 20],
-              months: ["Jan", "Feb", "March", "April", "May", "June", "July"],
-            };
-      
-            // Notice the URL: /call-volume-trend/ + businessId
-            const response = await axios.post(
-              `http://52.3.145.159:8080/api/v1/sentiment-analyses/call-volume-trend/${businessId}`,
-              requestBody
-            );
-      
-            setCallVolumeTrend(response.data);
-          } catch (err) {
-            console.error("Could not fetch call volume trend:", err);
-          }
+            try {
+                // Now the request body has only the arrays
+                const requestBody = {
+                    answered: [42, 109, 100, 31, 40, 28, 14],
+                    missed: [11, 34, 52, 32, 45, 32, 20],
+                    voicemail: [11, 32, 52, 41, 28, 32, 20],
+                    months: ["Jan", "Feb", "March", "April", "May", "June", "July"],
+                };
+
+                // Notice the URL: /call-volume-trend/ + businessId
+                const response = await axios.post(
+                    `http://52.3.145.159:8080/api/v1/sentiment-analyses/call-volume-trend/${businessId}`,
+                    requestBody
+                );
+
+                setCallVolumeTrend(response.data);
+            } catch (err) {
+                console.error("Could not fetch call volume trend:", err);
+            }
         }
-      
+
         fetchCallVolumeTrend();
-      }, [businessId]);
+    }, [businessId]);
+
+    const fetchCallCampaignStrategies = async () => {
+        try {
+          const url = "http://52.3.145.159:8080/api/v1/call-campaign-strategies";
+          const response = await axios.get(url);
+          setCallCampaignStrategies(response.data);  // will populate state
+        } catch (e) {
+          console.error("Error fetching call campaign strategies:", e);
+        }
+      };
+
+      useEffect(() => {
+        if (callCampaignState === "Y") {
+          fetchCallCampaignStrategies();
+        }
+      }, [callCampaignState]);
       
-      
+
+
     // Separate appointments
     const originalAppointments = appointments.filter((appt) => !appt.appointmentRescheduled);
     const rescheduledAppointments = appointments.filter(
@@ -666,44 +735,61 @@ const Dashboard = () => {
                         <Typography variant="body1">{weeklySentiment.trend_summary}</Typography>
 
                         {callVolumeTrend && (
-    <Typography variant="body1" sx={{ mt: 1 }}>
-   {callVolumeTrend.call_volume_summary}
-    </Typography>
-  )}
+                            <Typography variant="body1" sx={{ mt: 1 }}>
+                                {callVolumeTrend.call_volume_summary}
+                            </Typography>
+                        )}
+                        {
+                            callCampaignState === "Y" ? (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    sx={{ mt: 1 }}
+                                    onClick={() => {
+                                                       console.log("Opening the Call Campaign Form...");
+                                                       
+                                                     setOpenCampaignForm(true);
+                                                  }}
+                                    
+                                >
+                                    Call Campaign Form
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    sx={{ mt: 1 }}
+                                    onClick={() => {
+                                        if (googleReviewState === "Y") {
+                                            // user already said "Yes" => fetchInsights if not done or show them
+                                            fetchOrGenerateInsights();
+                                            promptForCallCampaign();
+                                            return;
+                                        } else if (googleReviewState === "N") {
+                                            // user said "No" => maybe do a snack or do nothing
+                                            setSnackMessage("You already said NO to Google Reviews.");
+                                            setSnackSeverity("info");
+                                            setSnackOpen(true);
+                                            return;
+                                        } else if (googleReviewState === "Pending") {
+                                            // Then push the Negative Review Alert message
+                                            const alertMessage = {
+                                                sender: 'bot',
+                                                text: "Negative Review Alert...\nWould you like us to fetch Google Reviews?"
+                                            };
+                                            setChatMessages([...chatMessages, alertMessage]);
+                                            setShowChatbot(true);
+                                        } else {
+                                            // "NONE" means no record in DB but not created => create pending or do it automatically
+                                            createPendingConfirmation(); // or same logic as "Pending"
+                                        }
+                                    }}
 
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            sx={{ mt: 1 }}
-                            onClick={() => {
-                                if (googleReviewState === "Y") {
-                                    // user already said "Yes" => fetchInsights if not done or show them
-                                    fetchOrGenerateInsights();
-                                    promptForCallCampaign();
-                                    return;
-                                } else if (googleReviewState === "N") {
-                                    // user said "No" => maybe do a snack or do nothing
-                                    setSnackMessage("You already said NO to Google Reviews.");
-                                    setSnackSeverity("info");
-                                    setSnackOpen(true);
-                                    return;
-                                } else if (googleReviewState === "Pending") {
-                                    // Then push the Negative Review Alert message
-                                    const alertMessage = {
-                                        sender: 'bot',
-                                        text: "Negative Review Alert...\nWould you like us to fetch Google Reviews?"
-                                    };
-                                    setChatMessages([...chatMessages, alertMessage]);
-                                    setShowChatbot(true);
-                                } else {
-                                    // "NONE" means no record in DB but not created => create pending or do it automatically
-                                    createPendingConfirmation(); // or same logic as "Pending"
-                                }
-                            }}
-
-                        >
-                            Show More
-                        </Button>
+                                >
+                                    Show More
+                                </Button>
+                            )
+                        }
                     </CardContent>
                 </Card>
             </Grid>
@@ -931,6 +1017,79 @@ const Dashboard = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            <Dialog open={openCampaignForm} onClose={() => setOpenCampaignForm(false)}
+                fullWidth
+                maxWidth="sm">
+                <DialogTitle>Call Campaign Form</DialogTitle>
+                <DialogContent>
+                    {/* 1) Multi-Select or checkboxes for your strategies */}
+                    {/* We'll assume you already have callCampaignStrategies in state, 
+        so the user can pick from them. */}
+
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                        Select one or more Strategies:
+                    </Typography>
+
+                    <FormGroup>
+                        {callCampaignStrategies.map((strategy) => (
+                            <FormControlLabel
+                                key={strategy.id}
+                                control={
+                                    <Checkbox
+                                        checked={selectedStrategies.includes(strategy.id)}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setSelectedStrategies((prev) => [...prev, strategy.id]);
+                                            } else {
+                                                setSelectedStrategies((prev) =>
+                                                    prev.filter((id) => id !== strategy.id)
+                                                );
+                                            }
+                                        }}
+                                    />
+                                }
+                                label={strategy.strategyName}
+                            />
+                        ))}
+                    </FormGroup>
+
+                    {/* 2) A text field for callCampaignVoice */}
+                    <TextField
+                        label="Call Campaign Voice (custom message)"
+                        multiline
+                        rows={3}
+                        fullWidth
+                        margin="normal"
+                        value={campaignVoice}
+                        onChange={(e) => setCampaignVoice(e.target.value)}
+                    />
+
+                    {/* 3) A small radio group or select for targetAudience */}
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                        <InputLabel id="targetAudienceLabel">Target Audience</InputLabel>
+                        <Select
+                            labelId="targetAudienceLabel"
+                            label="Target Audience"
+                            value={targetAudience}
+                            onChange={(e) => setTargetAudience(e.target.value)}
+                        >
+                            <MenuItem value="ALL">All</MenuItem>
+                            <MenuItem value="POSITIVE">Positive Sentiment Only</MenuItem>
+                            <MenuItem value="NEGATIVE">Negative Sentiment Only</MenuItem>
+                        </Select>
+                    </FormControl>
+
+
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenCampaignForm(false)}>Cancel</Button>
+                    <Button onClick={handleSaveCampaignSelection} variant="contained">
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
 
             {/* Chatbot Drawer */}
             <Chatbot

@@ -23,6 +23,7 @@ import {
     DialogActions,
     Box,
     Fab,
+    Skeleton,
 } from "@mui/material";
 import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import TextField from "@mui/material/TextField";
@@ -35,6 +36,7 @@ import FormGroup from "@mui/material/FormGroup";
 
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
+
 
 
 
@@ -70,6 +72,16 @@ const Dashboard = () => {
 
     // This will store whichever strategies you want to show in the Chatbot
     const [callCampaignStrategies, setCallCampaignStrategies] = useState([]);
+
+    const [pastCampaigns, setPastCampaigns] = useState([]);
+    // This will hold all the previously submitted “forms.”
+
+    const [openPastCampaignsDialog, setOpenPastCampaignsDialog] = useState(false);
+    // This controls showing/hiding the dialog that lists them.
+
+    const [showAllCampaigns, setShowAllCampaigns] = useState(false);
+    // This toggles “View More” to show more than 3 if user wants.
+
 
 
     // Chat-related states
@@ -134,7 +146,7 @@ const Dashboard = () => {
             dataLabels: { enabled: false },
             stroke: { curve: "smooth" },
             xaxis: {
-                categories: ["Feb", "March", "April", "May", "June", "July", "Aug"],
+                categories: ["aug","sep","oct", "nov", "dec", "jan", "feb"],
                 title: { text: "Last 6 Months" },
             },
             yaxis: {
@@ -282,6 +294,20 @@ const Dashboard = () => {
             } else {
                 console.error("Error fetching or generating insights:", err);
             }
+        }
+    };
+
+
+    const fetchPastCampaigns = async () => {
+        if (!businessId) return;
+        try {
+            const url = `http://52.3.145.159:8080/api/v1/call-campaign-selection/by-business/${businessId}`;
+            const response = await axios.get(url);
+            // response.data = an array of your BusinessCallCampaignStrategySelection entities
+            setPastCampaigns(response.data);
+        } catch (error) {
+            console.error("Error fetching past campaign forms:", error);
+            setPastCampaigns([]);
         }
     };
 
@@ -634,9 +660,9 @@ const Dashboard = () => {
         fetchAllConfirmationsState();
     }, [businessId]);
 
-
+    const [aITrendLoading,setAItrendLoading] = useState(false);
     useEffect(() => {
-        // If you have businessId from localStorage
+        // If you have businessId from localStorageß
         if (!businessId) {
             console.log("No businessId found, skip callVolumeTrend fetch");
             return;
@@ -644,12 +670,13 @@ const Dashboard = () => {
 
         async function fetchCallVolumeTrend() {
             try {
+                setAItrendLoading(true);
                 // Now the request body has only the arrays
                 const requestBody = {
                     answered: [42, 109, 100, 31, 40, 28, 14],
-                    missed: [11, 34, 52, 32, 45, 32, 20],
-                    voicemail: [11, 32, 52, 41, 28, 32, 20],
-                    months: ["Jan", "Feb", "March", "April", "May", "June", "July"],
+                    // missed: [11, 34, 52, 32, 12, 8, 2],
+                    // voicemail: [11, 32, 52, 41, 28, 32, 20],
+                    months: ["aug","sep","oct", "nov", "dec", "jan", "feb"],
                 };
 
                 // Notice the URL: /call-volume-trend/ + businessId
@@ -659,6 +686,7 @@ const Dashboard = () => {
                 );
 
                 setCallVolumeTrend(response.data);
+                setAItrendLoading(false);
             } catch (err) {
                 console.error("Could not fetch call volume trend:", err);
             }
@@ -669,20 +697,20 @@ const Dashboard = () => {
 
     const fetchCallCampaignStrategies = async () => {
         try {
-          const url = "http://52.3.145.159:8080/api/v1/call-campaign-strategies";
-          const response = await axios.get(url);
-          setCallCampaignStrategies(response.data);  // will populate state
+            const url = "http://52.3.145.159:8080/api/v1/call-campaign-strategies";
+            const response = await axios.get(url);
+            setCallCampaignStrategies(response.data);  // will populate state
         } catch (e) {
-          console.error("Error fetching call campaign strategies:", e);
+            console.error("Error fetching call campaign strategies:", e);
         }
-      };
+    };
 
-      useEffect(() => {
+    useEffect(() => {
         if (callCampaignState === "Y") {
-          fetchCallCampaignStrategies();
+            fetchCallCampaignStrategies();
         }
-      }, [callCampaignState]);
-      
+    }, [callCampaignState]);
+
 
 
     // Separate appointments
@@ -723,34 +751,122 @@ const Dashboard = () => {
     return (
         <Grid container spacing={3} sx={{ p: 3 }}>
             {/* TOP CARD */}
+            {/* TOP CARD */}
             <Grid item xs={12}>
-                <Card sx={{ ...cardStyle, "& .MuiCardContent-root": { p: 3 } }}>
-                    <CardContent>
-                        <Typography variant="h5" sx={{ fontWeight: "bold", color: "#ff4d6d" }}>
-                            AI-Driven Insights for {businessInfo ? businessInfo.businessName : "Business"}
-                        </Typography>
-                        <Typography variant="body1" sx={{ mt: 2 }}>
-                            Welcome to your dashboard! Here are some insights for your business.
-                        </Typography>
-                        <Typography variant="body1">{weeklySentiment.trend_summary}</Typography>
-
-                        {callVolumeTrend && (
-                            <Typography variant="body1" sx={{ mt: 1 }}>
-                                {callVolumeTrend.call_volume_summary}
+                <Card sx={{
+                    ...cardStyle,
+                    backgroundColor: theme.palette.background.paper,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    borderRadius: 2,
+                    position: 'relative',
+                    overflow: 'visible',
+                    border: '1px solid rgba(255, 77, 109, 0.2)',  // Much lighter pink border
+                    '&:hover': {
+                        borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover but still light
+                        transition: 'border-color 0.3s ease'
+                    }
+                }}>
+                    <CardContent sx={{ p: 4 }}>
+                        {/* Title Section */}
+                        <Box sx={{
+                            mb: 3,
+                            textAlign: 'center'  // Center the title
+                        }}>
+                            <Typography
+                                variant="h4"
+                                sx={{
+                                    fontWeight: 700,
+                                    color: '#ff4d6d',  // Changed to pink color
+                                    mb: 1,
+                                    fontSize: {
+                                        xs: '1.5rem',
+                                        sm: '1.7rem',
+                                        md: '1.8rem'
+                                    }
+                                }}
+                            >
+                                AI Insights for {businessInfo ? businessInfo.businessName : "Business"}
                             </Typography>
-                        )}
-                        {
-                            callCampaignState === "Y" ? (
+                            <Typography
+                                variant="subtitle1"
+                                sx={{
+                                    color: theme.palette.text.secondary,
+                                    fontSize: '1.1rem'
+                                }}
+                            >
+                                Welcome to your dashboard! Here are some insights for your business.
+                            </Typography>
+                        </Box>
+
+                        {/* Content Section */}
+                        <Box sx={{
+                            mb: 4,
+                            textAlign: 'center'  // Center the content
+                        }}>
+
+                            {aITrendLoading &&
+                            <Box width="100%" sx={{ display: 'flex', flexDirection: 'column' }}>
+                                <Skeleton sx={{backgroundColor : '#ffcad3'}}/>
+                                <Skeleton animation="wave" sx={{backgroundColor : '#ffcad3'}}/>
+                                <Skeleton animation="wave" sx={{backgroundColor : '#ffcad3'}}/>
+                                <Skeleton animation={false} sx={{backgroundColor : '#ffcad3'}}/>
+                            </Box>
+                            }
+
+
+                            {!aITrendLoading && <Typography
+                                variant="body1"
+                                sx={{
+                                    mb: 2,
+                                    color: theme.palette.text.primary,
+                                    lineHeight: 1.6
+                                }}
+                            >
+                                {weeklySentiment.trend_summary}
+                            </Typography> }
+
+                            {callVolumeTrend && !aITrendLoading &&(
+                                <Typography
+                                    variant="body1"
+                                    sx={{
+                                        color: theme.palette.text.primary,
+                                        lineHeight: 1.6
+                                    }}
+                                >
+                                    {callVolumeTrend.call_volume_summary}
+                                </Typography>
+                            )}
+                        </Box>
+
+                        {/* Buttons Section */}
+                        <Box sx={{
+                            display: 'flex',
+                            gap: 2,
+                            alignItems: 'center',
+                            justifyContent: 'center',  // Center the buttons
+                            flexWrap: 'wrap'
+                        }}>
+                            {callCampaignState === "Y" ? (
                                 <Button
                                     variant="contained"
-                                    color="primary"
-                                    sx={{ mt: 1 }}
                                     onClick={() => {
-                                                       console.log("Opening the Call Campaign Form...");
-                                                       
-                                                     setOpenCampaignForm(true);
-                                                  }}
-                                    
+                                        console.log("Opening the Call Campaign Form...");
+                                        setOpenCampaignForm(true);
+                                    }}
+                                    sx={{
+                                        py: 1.5,
+                                        px: 4,
+                                        borderRadius: 2,
+                                        fontWeight: 600,
+                                        textTransform: 'none',
+                                        fontSize: '1rem',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                        backgroundColor: '#ff4d6d',  // Changed to pink color
+                                        '&:hover': {
+                                            backgroundColor: '#ff3d5d',  // Slightly darker on hover
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                                        }
+                                    }}
                                 >
                                     Call Campaign Form
                                 </Button>
@@ -758,21 +874,15 @@ const Dashboard = () => {
                                 <Button
                                     variant="contained"
                                     color="primary"
-                                    sx={{ mt: 1 }}
                                     onClick={() => {
                                         if (googleReviewState === "Y") {
-                                            // user already said "Yes" => fetchInsights if not done or show them
                                             fetchOrGenerateInsights();
                                             promptForCallCampaign();
-                                            return;
                                         } else if (googleReviewState === "N") {
-                                            // user said "No" => maybe do a snack or do nothing
                                             setSnackMessage("You already said NO to Google Reviews.");
                                             setSnackSeverity("info");
                                             setSnackOpen(true);
-                                            return;
                                         } else if (googleReviewState === "Pending") {
-                                            // Then push the Negative Review Alert message
                                             const alertMessage = {
                                                 sender: 'bot',
                                                 text: "Negative Review Alert...\nWould you like us to fetch Google Reviews?"
@@ -780,16 +890,54 @@ const Dashboard = () => {
                                             setChatMessages([...chatMessages, alertMessage]);
                                             setShowChatbot(true);
                                         } else {
-                                            // "NONE" means no record in DB but not created => create pending or do it automatically
-                                            createPendingConfirmation(); // or same logic as "Pending"
+                                            createPendingConfirmation();
                                         }
                                     }}
-
+                                    sx={{
+                                        py: 1.5,
+                                        px: 4,
+                                        borderRadius: 2,
+                                        fontWeight: 600,
+                                        textTransform: 'none',
+                                        fontSize: '1rem',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                        backgroundColor: '#ff4d6d',  // Changed to pink color
+                                        '&:hover': {
+                                            backgroundColor: '#ff3d5d',  // Slightly darker on hover
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                                        }
+                                    }}
                                 >
                                     Show More
                                 </Button>
-                            )
-                        }
+                            )}
+
+                            <Button
+                                variant="outlined"
+                                onClick={async () => {
+                                    await fetchPastCampaigns();
+                                    setOpenPastCampaignsDialog(true);
+                                }}
+                                sx={{
+                                    py: 1.5,
+                                    px: 4,
+                                    borderRadius: 2,
+                                    fontWeight: 600,
+                                    textTransform: 'none',
+                                    fontSize: '1rem',
+                                    borderWidth: 2,
+                                    color: '#ff4d6d',  // Changed to pink color
+                                    borderColor: '#ff4d6d',  // Changed to pink color
+                                    '&:hover': {
+                                        borderWidth: 2,
+                                        borderColor: '#ff3d5d',  // Slightly darker on hover
+                                        backgroundColor: 'rgba(255, 77, 109, 0.1)'  // Light pink background on hover
+                                    }
+                                }}
+                            >
+                                View Past Campaigns
+                            </Button>
+                        </Box>
                     </CardContent>
                 </Card>
             </Grid>
@@ -797,27 +945,68 @@ const Dashboard = () => {
             {/* BUSINESS INFO ROW */}
             <Grid item xs={12} container spacing={2}>
                 <Grid item xs={12} md={9.6}>
-                    <Card sx={{ ...cardStyle, "& .MuiCardContent-root": { p: 3 } }}>
+                    {/* BUSINESS INFO CARD */}
+                    <Card sx={{
+                        ...cardStyle,
+                        "& .MuiCardContent-root": { p: 3 },
+                        border: '1px solid rgba(255, 77, 109, 0.2)',  // Light pink border
+                        borderRadius: 2,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        '&:hover': {
+                            borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover
+                            transition: 'border-color 0.3s ease'
+                        }
+                    }}>
                         <CardContent>
                             {businessInfo ? (
                                 <Grid container spacing={2}>
                                     <Grid item xs={12} md={4}>
-                                        <BusinessIcon sx={{ fontSize: 40, color: "#ff4d6d" }} />
-                                        <Typography variant="h6" sx={{ fontWeight: "medium" }}>
-                                            <strong>{businessInfo.businessName}</strong>
-                                        </Typography>
+                                        <Box sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: 1
+                                        }}>
+                                            <BusinessIcon sx={{ fontSize: 40, color: "#ff4d6d" }} />
+                                            <Typography variant="h6" sx={{
+                                                fontWeight: "medium",
+                                                textAlign: 'center'
+                                            }}>
+                                                <strong>{businessInfo.businessName}</strong>
+                                            </Typography>
+                                        </Box>
                                     </Grid>
                                     <Grid item xs={12} md={4}>
-                                        <AccessTimeIcon sx={{ fontSize: 40, color: "#ff4d6d" }} />
-                                        <Typography variant="h6" sx={{ fontWeight: "medium" }}>
-                                            <strong>Opening:</strong> {convertTo12Hour(businessInfo.openingTime)}
-                                        </Typography>
+                                        <Box sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: 1
+                                        }}>
+                                            <AccessTimeIcon sx={{ fontSize: 40, color: "#ff4d6d" }} />
+                                            <Typography variant="h6" sx={{
+                                                fontWeight: "medium",
+                                                textAlign: 'center'
+                                            }}>
+                                                <strong>Opening:</strong> {convertTo12Hour(businessInfo.openingTime)}
+                                            </Typography>
+                                        </Box>
                                     </Grid>
                                     <Grid item xs={12} md={4}>
-                                        <AccessTimeIcon sx={{ fontSize: 40, color: "#ff4d6d" }} />
-                                        <Typography variant="h6" sx={{ fontWeight: "medium" }}>
-                                            <strong>Closing:</strong> {convertTo12Hour(businessInfo.closingTime)}
-                                        </Typography>
+                                        <Box sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: 1
+                                        }}>
+                                            <AccessTimeIcon sx={{ fontSize: 40, color: "#ff4d6d" }} />
+                                            <Typography variant="h6" sx={{
+                                                fontWeight: "medium",
+                                                textAlign: 'center'
+                                            }}>
+                                                <strong>Closing:</strong> {convertTo12Hour(businessInfo.closingTime)}
+                                            </Typography>
+                                        </Box>
                                     </Grid>
                                 </Grid>
                             ) : (
@@ -825,6 +1014,9 @@ const Dashboard = () => {
                             )}
                         </CardContent>
                     </Card>
+
+
+
                 </Grid>
             </Grid>
 
@@ -836,7 +1028,14 @@ const Dashboard = () => {
                             elevation={0}
                             sx={{
                                 ...cardStyle,
-                                p: 1,
+                                p: 2,  // Increased padding slightly
+                                border: '1px solid rgba(255, 77, 109, 0.2)',  // Light pink border
+                                borderRadius: 2,
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                '&:hover': {
+                                    borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover
+                                    transition: 'border-color 0.3s ease'
+                                },
                                 "& .MuiTableContainer-root": {
                                     borderRadius: theme.shape.borderRadius,
                                     border: `1px solid ${theme.palette.divider}`,
@@ -846,7 +1045,12 @@ const Dashboard = () => {
                             <Typography
                                 variant="h5"
                                 gutterBottom
-                                sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
+                                sx={{
+                                    fontWeight: "bold",
+                                    color: '#ff4d6d',  // Matching the pink theme
+                                    mb: 2,
+                                    pl: 1  // Added slight padding to align with chart
+                                }}
                             >
                                 Call Volume
                             </Typography>
@@ -861,10 +1065,17 @@ const Dashboard = () => {
 
                     <Grid item xs={12} md={6}>
                         <Paper
-                            elevation={3}
+                            elevation={0}
                             sx={{
                                 ...cardStyle,
-                                p: 1,
+                                p: 2,
+                                border: '1px solid rgba(255, 77, 109, 0.2)',
+                                borderRadius: 2,
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                '&:hover': {
+                                    borderColor: 'rgba(255, 77, 109, 0.3)',
+                                    transition: 'border-color 0.3s ease'
+                                },
                                 "& .MuiTableContainer-root": {
                                     borderRadius: theme.shape.borderRadius,
                                     border: `1px solid ${theme.palette.divider}`,
@@ -874,7 +1085,12 @@ const Dashboard = () => {
                             <Typography
                                 variant="h5"
                                 gutterBottom
-                                sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
+                                sx={{
+                                    fontWeight: "bold",
+                                    color: '#ff4d6d',
+                                    mb: 2,
+                                    pl: 1
+                                }}
                             >
                                 Customer Distribution
                             </Typography>
@@ -978,15 +1194,41 @@ const Dashboard = () => {
             </Grid>
 
             {/* DIALOG for new Appt */}
-            <Dialog open={openNewAppt} onClose={handleCloseNewAppt}>
-                <DialogTitle>New Appointment</DialogTitle>
-                <DialogContent>
+            <Dialog
+                open={openNewAppt}
+                onClose={handleCloseNewAppt}
+                PaperProps={{
+                    sx: {
+                        borderRadius: 2,
+                        boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+                        minWidth: '400px'
+                    }
+                }}
+            >
+                <DialogTitle sx={{
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
+                    py: 2
+                }}>
+                    New Appointment
+                </DialogTitle>
+                <DialogContent sx={{ p: 3, mt: 2 }}>
                     <TextField
                         label="Customer Name"
                         fullWidth
                         margin="normal"
                         value={newCustomerName}
                         onChange={(e) => setNewCustomerName(e.target.value)}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                '&:hover fieldset': {
+                                    borderColor: theme.palette.primary.main,
+                                },
+                            },
+                            mb: 2
+                        }}
                     />
                     <TextField
                         label="Appointment Date (YYYY-MM-DD)"
@@ -994,6 +1236,14 @@ const Dashboard = () => {
                         margin="normal"
                         value={newApptDate}
                         onChange={(e) => setNewApptDate(e.target.value)}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                '&:hover fieldset': {
+                                    borderColor: theme.palette.primary.main,
+                                },
+                            },
+                            mb: 2
+                        }}
                     />
                     <TextField
                         label="Start Time (HH:mm:ss)"
@@ -1001,6 +1251,14 @@ const Dashboard = () => {
                         margin="normal"
                         value={newApptStart}
                         onChange={(e) => setNewApptStart(e.target.value)}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                '&:hover fieldset': {
+                                    borderColor: theme.palette.primary.main,
+                                },
+                            },
+                            mb: 2
+                        }}
                     />
                     <TextField
                         label="End Time (HH:mm:ss)"
@@ -1008,30 +1266,79 @@ const Dashboard = () => {
                         margin="normal"
                         value={newApptEnd}
                         onChange={(e) => setNewApptEnd(e.target.value)}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                '&:hover fieldset': {
+                                    borderColor: theme.palette.primary.main,
+                                },
+                            },
+                            mb: 2
+                        }}
                     />
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseNewAppt}>Cancel</Button>
-                    <Button onClick={handleCreateAppointment} variant="contained">
+                <DialogActions sx={{ p: 3, backgroundColor: theme.palette.grey[50] }}>
+                    <Button
+                        onClick={handleCloseNewAppt}
+                        sx={{
+                            color: theme.palette.text.secondary,
+                            '&:hover': {
+                                backgroundColor: theme.palette.grey[200]
+                            }
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleCreateAppointment}
+                        variant="contained"
+                        sx={{
+                            backgroundColor: theme.palette.primary.main,
+                            '&:hover': {
+                                backgroundColor: theme.palette.primary.dark
+                            },
+                            px: 4
+                        }}
+                    >
                         Save
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            <Dialog open={openCampaignForm} onClose={() => setOpenCampaignForm(false)}
+            {/* Call Campaign Form Dialog */}
+            <Dialog
+                open={openCampaignForm}
+                onClose={() => setOpenCampaignForm(false)}
                 fullWidth
-                maxWidth="sm">
-                <DialogTitle>Call Campaign Form</DialogTitle>
-                <DialogContent>
-                    {/* 1) Multi-Select or checkboxes for your strategies */}
-                    {/* We'll assume you already have callCampaignStrategies in state, 
-        so the user can pick from them. */}
-
-                    <Typography variant="body2" sx={{ mb: 1 }}>
+                maxWidth="sm"
+                PaperProps={{
+                    sx: {
+                        borderRadius: 2,
+                        boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+                    }
+                }}
+            >
+                <DialogTitle sx={{
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
+                    py: 2
+                }}>
+                    Call Campaign Form
+                </DialogTitle>
+                <DialogContent sx={{ p: 3, mt: 2 }}>
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            mb: 2,
+                            fontWeight: 500,
+                            color: theme.palette.text.secondary
+                        }}
+                    >
                         Select one or more Strategies:
                     </Typography>
 
-                    <FormGroup>
+                    <FormGroup sx={{ mb: 3 }}>
                         {callCampaignStrategies.map((strategy) => (
                             <FormControlLabel
                                 key={strategy.id}
@@ -1047,14 +1354,24 @@ const Dashboard = () => {
                                                 );
                                             }
                                         }}
+                                        sx={{
+                                            color: theme.palette.primary.main,
+                                            '&.Mui-checked': {
+                                                color: theme.palette.primary.main,
+                                            },
+                                        }}
                                     />
                                 }
                                 label={strategy.strategyName}
+                                sx={{
+                                    '& .MuiFormControlLabel-label': {
+                                        color: theme.palette.text.primary
+                                    }
+                                }}
                             />
                         ))}
                     </FormGroup>
 
-                    {/* 2) A text field for callCampaignVoice */}
                     <TextField
                         label="Call Campaign Voice (custom message)"
                         multiline
@@ -1063,10 +1380,27 @@ const Dashboard = () => {
                         margin="normal"
                         value={campaignVoice}
                         onChange={(e) => setCampaignVoice(e.target.value)}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                '&:hover fieldset': {
+                                    borderColor: theme.palette.primary.main,
+                                },
+                            },
+                            mb: 3
+                        }}
                     />
 
-                    {/* 3) A small radio group or select for targetAudience */}
-                    <FormControl fullWidth sx={{ mt: 2 }}>
+                    <FormControl
+                        fullWidth
+                        sx={{
+                            mt: 2,
+                            '& .MuiOutlinedInput-root': {
+                                '&:hover fieldset': {
+                                    borderColor: theme.palette.primary.main,
+                                },
+                            },
+                        }}
+                    >
                         <InputLabel id="targetAudienceLabel">Target Audience</InputLabel>
                         <Select
                             labelId="targetAudienceLabel"
@@ -1079,18 +1413,163 @@ const Dashboard = () => {
                             <MenuItem value="NEGATIVE">Negative Sentiment Only</MenuItem>
                         </Select>
                     </FormControl>
-
-
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenCampaignForm(false)}>Cancel</Button>
-                    <Button onClick={handleSaveCampaignSelection} variant="contained">
+                <DialogActions sx={{ p: 3, backgroundColor: theme.palette.grey[50] }}>
+                    <Button
+                        onClick={() => setOpenCampaignForm(false)}
+                        sx={{
+                            color: theme.palette.text.secondary,
+                            '&:hover': {
+                                backgroundColor: theme.palette.grey[200]
+                            }
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleSaveCampaignSelection}
+                        variant="contained"
+                        sx={{
+                            backgroundColor: theme.palette.primary.main,
+                            '&:hover': {
+                                backgroundColor: theme.palette.primary.dark
+                            },
+                            px: 4
+                        }}
+                    >
                         Save
                     </Button>
                 </DialogActions>
             </Dialog>
 
 
+            {/* Past Campaigns Dialog */}
+            <Dialog
+                open={openPastCampaignsDialog}
+                onClose={() => setOpenPastCampaignsDialog(false)}
+                fullWidth
+                maxWidth="sm"
+                PaperProps={{
+                    sx: {
+                        borderRadius: 2,
+                        boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+                    }
+                }}
+            >
+                <DialogTitle sx={{
+                    backgroundColor: '#ff4d6d',  // Changed to pink color
+                    color: 'white',
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
+                    py: 2
+                }}>
+                    Previously Submitted Campaigns
+                </DialogTitle>
+                <DialogContent sx={{ p: 3, mt: 2 }}>
+                    {pastCampaigns.length === 0 ? (
+                        <Typography sx={{ color: theme.palette.text.secondary }}>
+                            No past submissions found.
+                        </Typography>
+                    ) : (
+                        <>
+                            {pastCampaigns
+                                .slice(0, showAllCampaigns ? pastCampaigns.length : 3)
+                                .map((campaign, index) => (
+                                    <Box
+                                        key={campaign.id}
+                                        sx={{
+                                            border: `1px solid ${theme.palette.grey[300]}`,
+                                            borderRadius: 2,
+                                            p: 3,
+                                            mb: 2,
+                                            backgroundColor: theme.palette.background.paper,
+                                            '&:hover': {
+                                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                            }
+                                        }}
+                                    >
+                                        <Typography
+                                            variant="body1"
+                                            sx={{
+                                                fontWeight: 500,
+                                                color: theme.palette.text.primary,
+                                                mb: 1
+                                            }}
+                                        >
+                                            Submitted on: {new Date(campaign.createdAt).toLocaleDateString('en-US', {
+                                                day: 'numeric',
+                                                month: 'short',
+                                                year: 'numeric'
+                                            }).replace(/(\d+)/, (match) => {
+                                                const day = parseInt(match);
+                                                const suffix = ['th', 'st', 'nd', 'rd'][(day > 3 && day < 21) || day % 10 > 3 ? 0 : day % 10];
+                                                return `${day}${suffix}`;
+                                            })}
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                color: theme.palette.text.secondary,
+                                                mb: 1
+                                            }}
+                                        >
+                                            <strong>
+                                                Strategy: {campaign.callCampaignStrategy.strategyName}
+                                            </strong>
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                color: theme.palette.text.secondary,
+                                                mb: 1
+                                            }}
+                                        >
+                                            Voice: {campaign.callCampaignVoice}
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                color: theme.palette.text.secondary
+                                            }}
+                                        >
+                                            Target Audience: {campaign.targetAudience}
+                                        </Typography>
+                                    </Box>
+                                ))
+                            }
+                            {pastCampaigns.length > 3 && (
+                                <Button
+                                    variant="text"
+                                    onClick={() => setShowAllCampaigns(!showAllCampaigns)}
+                                    sx={{
+                                        color: '#ff4d6d',  // Changed to pink color
+                                        '&:hover': {
+                                            backgroundColor: 'rgba(255, 77, 109, 0.1)'  // Light pink background on hover
+                                        }
+                                    }}
+                                >
+                                    {showAllCampaigns ? 'Show Less' : 'View More'}
+                                </Button>
+                            )}
+                        </>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ p: 3, backgroundColor: theme.palette.grey[50] }}>
+                    <Button
+                        onClick={() => setOpenPastCampaignsDialog(false)}
+                        variant="contained"
+                        sx={{
+                            backgroundColor: '#ff4d6d',  // Changed to pink color
+                            '&:hover': {
+                                backgroundColor: '#ff3d5d'  // Slightly darker pink on hover
+                            },
+                            px: 4
+                        }}
+                    >
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
             {/* Chatbot Drawer */}
             <Chatbot
                 showChatbot={showChatbot}

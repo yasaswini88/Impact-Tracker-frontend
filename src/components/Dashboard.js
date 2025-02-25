@@ -36,6 +36,9 @@ import FormGroup from "@mui/material/FormGroup";
 
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
+import AiLoadingAnimation from "./AiLoadingAnimation";
+import CallHistory from "./CallHistory";
+
 
 
 
@@ -146,7 +149,7 @@ const Dashboard = () => {
             dataLabels: { enabled: false },
             stroke: { curve: "smooth" },
             xaxis: {
-                categories: ["aug","sep","oct", "nov", "dec", "jan", "feb"],
+                categories: ["aug", "sep", "oct", "nov", "dec", "jan", "feb"],
                 title: { text: "Last 6 Months" },
             },
             yaxis: {
@@ -660,7 +663,7 @@ const Dashboard = () => {
         fetchAllConfirmationsState();
     }, [businessId]);
 
-    const [aITrendLoading,setAItrendLoading] = useState(false);
+    const [aITrendLoading, setAItrendLoading] = useState(false);
     useEffect(() => {
         // If you have businessId from localStorageß
         if (!businessId) {
@@ -676,7 +679,7 @@ const Dashboard = () => {
                     answered: [42, 109, 100, 31, 40, 28, 14],
                     // missed: [11, 34, 52, 32, 12, 8, 2],
                     // voicemail: [11, 32, 52, 41, 28, 32, 20],
-                    months: ["aug","sep","oct", "nov", "dec", "jan", "feb"],
+                    months: ["aug", "sep", "oct", "nov", "dec", "jan", "feb"],
                 };
 
                 // Notice the URL: /call-volume-trend/ + businessId
@@ -804,28 +807,22 @@ const Dashboard = () => {
                             textAlign: 'center'  // Center the content
                         }}>
 
-                            {aITrendLoading &&
-                            <Box width="100%" sx={{ display: 'flex', flexDirection: 'column' }}>
-                                <Skeleton sx={{backgroundColor : '#ffcad3'}}/>
-                                <Skeleton animation="wave" sx={{backgroundColor : '#ffcad3'}}/>
-                                <Skeleton animation="wave" sx={{backgroundColor : '#ffcad3'}}/>
-                                <Skeleton animation={false} sx={{backgroundColor : '#ffcad3'}}/>
-                            </Box>
-                            }
+                            {aITrendLoading ? (
+                                <AiLoadingAnimation />
+                            ) : (
+                                <Typography
+                                    variant="body1"
+                                    sx={{
+                                        mb: 2,
+                                        color: theme.palette.text.primary,
+                                        lineHeight: 1.6,
+                                    }}
+                                >
+                                    {weeklySentiment.trend_summary}
+                                </Typography>
+                            )}
 
-
-                            {!aITrendLoading && <Typography
-                                variant="body1"
-                                sx={{
-                                    mb: 2,
-                                    color: theme.palette.text.primary,
-                                    lineHeight: 1.6
-                                }}
-                            >
-                                {weeklySentiment.trend_summary}
-                            </Typography> }
-
-                            {callVolumeTrend && !aITrendLoading &&(
+                            {callVolumeTrend && !aITrendLoading && (
                                 <Typography
                                     variant="body1"
                                     sx={{
@@ -944,7 +941,7 @@ const Dashboard = () => {
 
             {/* BUSINESS INFO ROW */}
             <Grid item xs={12} container spacing={2}>
-                <Grid item xs={12} md={9.6}>
+                <Grid item xs={12} >
                     {/* BUSINESS INFO CARD */}
                     <Card sx={{
                         ...cardStyle,
@@ -1106,89 +1103,59 @@ const Dashboard = () => {
             </Grid>
 
             {/* ROW 2: LEFT = CALL HISTORY, RIGHT = CALENDAR + TABLE */}
-            <Grid item xs={12} container spacing={3}>
-                <Grid item xs={12} md={4}>
-                    <Paper
-                        elevation={3}
-                        sx={{
-                            ...cardStyle,
-                            p: 3,
-                            "& .MuiTableContainer-root": {
-                                borderRadius: theme.shape.borderRadius,
-                                border: `1px solid ${theme.palette.divider}`,
-                            },
-                        }}
-                    >
-                        <Typography
-                            variant="h5"
-                            gutterBottom
-                            sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
-                        >
-                            Call History
-                        </Typography>
-
-                        <List
-                            sx={{
-                                width: "100%",
-                                maxWidth: 360,
-                                height: "100vh",
-                                bgcolor: "background.paper",
-                            }}
-                        >
-                            <ListItem>
-                                <ListItemAvatar>
-                                    <Avatar>
-                                        <CallReceivedIcon />
-                                    </Avatar>
-                                </ListItemAvatar>
-                                <ListItemText primary="707 (217)-1427" secondary="Jan 9, 2025 11:30:00 AM" />
-                            </ListItem>
-                            <ListItem>
-                                <ListItemAvatar>
-                                    <Avatar>
-                                        <CallReceivedIcon />
-                                    </Avatar>
-                                </ListItemAvatar>
-                                <ListItemText primary="787 (567)-8927" secondary="Jan 7, 2025 10:00:00 AM" />
-                            </ListItem>
-                            <ListItem>
-                                <ListItemAvatar>
-                                    <Avatar>
-                                        <CallReceivedIcon />
-                                    </Avatar>
-                                </ListItemAvatar>
-                                <ListItemText primary="703 (567)-1787" secondary="July 20, 2025 09:00:00 PM" />
-                            </ListItem>
-                        </List>
-                    </Paper>
+            <Grid item xs={12} container spacing={3}
+            sx={{
+                ...cardStyle,
+                p: 2,  // Increased padding slightly
+                border: '1px solid rgba(255, 77, 109, 0.2)',  // Light pink border
+                borderRadius: 2,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                '&:hover': {
+                    borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover
+                    transition: 'border-color 0.3s ease'
+                },
+                "& .MuiTableContainer-root": {
+                    borderRadius: theme.shape.borderRadius,
+                    border: `1px solid ${theme.palette.divider}`,
+                },
+            }}>
+                {/* Call History - 40% Width */}
+                <Grid item xs={12} md={5} sx={{
+                                ...cardStyle,
+                                p: 2,  // Increased padding slightly
+                                border: '1px solid rgba(255, 77, 109, 0.2)',  // Light pink border
+                                borderRadius: 2,
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                '&:hover': {
+                                    borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover
+                                    transition: 'border-color 0.3s ease'
+                                },
+                                "& .MuiTableContainer-root": {
+                                    borderRadius: theme.shape.borderRadius,
+                                    border: `1px solid ${theme.palette.divider}`,
+                                },
+                            }}>
+                    <CallHistory businessId={businessId} />
                 </Grid>
 
-                {/* Right side: BigCalendar and Rescheduled Appts */}
-                <Grid item xs={12} md={8}>
-                    <Paper sx={{ ...cardStyle, p: 3, height: "100%" }}>
+                {/* React Big Calendar - 60% Width */}
+                <Grid item xs={12} md={7}>
+                    <Paper sx={{
+                                ...cardStyle,
+                                p: 2,  // Increased padding slightly
+                                border: '1px solid rgba(255, 77, 109, 0.2)',  // Light pink border
+                                borderRadius: 2,
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                '&:hover': {
+                                    borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover
+                                    transition: 'border-color 0.3s ease'
+                                },
+                                "& .MuiTableContainer-root": {
+                                    borderRadius: theme.shape.borderRadius,
+                                    border: `1px solid ${theme.palette.divider}`,
+                                },
+                            }}>
                         <ReactBigCalendar />
-                    </Paper>
-
-                    {/* Rescheduled Appts */}
-                    <Paper
-                        elevation={3}
-                        sx={{
-                            ...cardStyle,
-                            p: 3,
-                            "& .MuiTableContainer-root": {
-                                borderRadius: theme.shape.borderRadius,
-                                border: `1px solid ${theme.palette.divider}`,
-                            },
-                        }}
-                    >
-                        <Typography
-                            variant="h5"
-                            gutterBottom
-                            sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
-                        >
-                            Rescheduled Appointments
-                        </Typography>
-                        {/* ... Your table code ... */}
                     </Paper>
                 </Grid>
             </Grid>

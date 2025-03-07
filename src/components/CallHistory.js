@@ -34,9 +34,17 @@ function CallHistory({ businessId }) {
         mb: 2,
         display: "flex",
         flexDirection: "column",
-        height: 400,     // <--- FIXED HEIGHT in px (or set to 100%)
+        height: 800,
+        border: "1px solid rgba(255, 77, 109, 0.2)", // Light pink border
+        borderRadius: 2,
+        boxShadow: "0 4px 12px rgba(0,0,0,0.1)", // Subtle shadow
+        "&:hover": {
+          borderColor: "rgba(255, 77, 109, 0.3)", // Slightly darker pink on hover
+          transition: "border-color 0.3s ease",
+        },
       }}
     >
+
       <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
         Call History
       </Typography>

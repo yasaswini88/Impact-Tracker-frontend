@@ -1104,57 +1104,34 @@ const Dashboard = () => {
 
             {/* ROW 2: LEFT = CALL HISTORY, RIGHT = CALENDAR + TABLE */}
             <Grid item xs={12} container spacing={3}
-            sx={{
-                ...cardStyle,
-                p: 2,  // Increased padding slightly
-                border: '1px solid rgba(255, 77, 109, 0.2)',  // Light pink border
-                borderRadius: 2,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                '&:hover': {
-                    borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover
-                    transition: 'border-color 0.3s ease'
-                },
-                "& .MuiTableContainer-root": {
-                    borderRadius: theme.shape.borderRadius,
-                    border: `1px solid ${theme.palette.divider}`,
-                },
-            }}>
+            >
                 {/* Call History - 40% Width */}
                 <Grid item xs={12} md={5} sx={{
-                                ...cardStyle,
-                                p: 2,  // Increased padding slightly
-                                border: '1px solid rgba(255, 77, 109, 0.2)',  // Light pink border
-                                borderRadius: 2,
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                '&:hover': {
-                                    borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover
-                                    transition: 'border-color 0.3s ease'
-                                },
-                                "& .MuiTableContainer-root": {
-                                    borderRadius: theme.shape.borderRadius,
-                                    border: `1px solid ${theme.palette.divider}`,
-                                },
-                            }}>
+                    p: 2,
+                    boxShadow: 'none', // Removes any shadow
+                    border: 'none', // Completely removes the border
+                }}>
                     <CallHistory businessId={businessId} />
                 </Grid>
+
 
                 {/* React Big Calendar - 60% Width */}
                 <Grid item xs={12} md={7}>
                     <Paper sx={{
-                                ...cardStyle,
-                                p: 2,  // Increased padding slightly
-                                border: '1px solid rgba(255, 77, 109, 0.2)',  // Light pink border
-                                borderRadius: 2,
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                '&:hover': {
-                                    borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover
-                                    transition: 'border-color 0.3s ease'
-                                },
-                                "& .MuiTableContainer-root": {
-                                    borderRadius: theme.shape.borderRadius,
-                                    border: `1px solid ${theme.palette.divider}`,
-                                },
-                            }}>
+                        ...cardStyle,
+                        p: 2,  // Increased padding slightly
+                        border: '1px solid rgba(255, 77, 109, 0.2)',  // Light pink border
+                        borderRadius: 2,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        '&:hover': {
+                            borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover
+                            transition: 'border-color 0.3s ease'
+                        },
+                        "& .MuiTableContainer-root": {
+                            borderRadius: theme.shape.borderRadius,
+                            border: `1px solid ${theme.palette.divider}`,
+                        },
+                    }}>
                         <ReactBigCalendar />
                     </Paper>
                 </Grid>

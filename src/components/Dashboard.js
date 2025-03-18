@@ -158,7 +158,7 @@ const Dashboard = () => {
             dataLabels: { enabled: false },
             stroke: { curve: "smooth" },
             xaxis: {
-                categories: ["aug", "sep", "oct", "nov", "dec", "jan", "feb"],
+                categories: [ "sep", "oct", "nov", "dec", "jan", "feb", "mar"],
                 title: { text: "Last 6 Months" },
             },
             yaxis: {
@@ -174,11 +174,12 @@ const Dashboard = () => {
         series: [
             {
                 name: "New Clients",
-                data: [44, 55, 41, 37, 22, 43, 21],
+                // data: [44, 55, 41, 37, 22, 43, 21],
+                 data: [53, 45, 38, 25, 21,19, 17],
             },
             {
                 name: "Existing Clients",
-                data: [53, 32, 33, 52, 13, 43, 32],
+                data: [53, 32, 33, 15, 13, 33, 32],
             },
         ],
         options: {
@@ -198,7 +199,8 @@ const Dashboard = () => {
             stroke: { width: 1, colors: ["#fff"] },
             title: { text: "" },
             xaxis: {
-                categories: ["01/26", "01/25", "01/24", "01/23", "01/22", "01/21", "01/20"],
+                // categories: ["01/26", "01/25", "01/24", "01/23", "01/22", "01/21", "01/20"],
+                categories: ["03/12", "03/13", "03/14", "03/15", "03/16", "03/17", "03/18"],
                 labels: {
                     formatter: function (val) {
                         return val + "";

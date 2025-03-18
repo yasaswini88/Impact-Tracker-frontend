@@ -50,7 +50,7 @@ const Chatbot = ({
     return (
         <>
             {/* Floating Action Button (the Chatbot icon) */}
-            <Fab
+            {/* <Fab
                 color="primary"
                 aria-label="chat"
                 onClick={toggleChatbot}
@@ -78,7 +78,7 @@ const Chatbot = ({
                         borderRadius: "16px",
                     }}
                 />
-            </Fab>
+            </Fab> */}
 
             {/* The Drawer for Chat UI */}
             <Drawer
@@ -130,7 +130,7 @@ const Chatbot = ({
                                         mb: message.text.includes("Negative Review Alert") ? 1 : 2,
                                     }}
                                 >
-                                    {message.text.includes("Would you like some call campaign suggestions") && (
+                                    {/* {message.text.includes("Would you like some call campaign suggestions") && (
                                         <Box sx={{ display: "flex", gap: 1, ml: 2, mb: 2 }}>
                                             <Button variant="outlined" onClick={handleCallCampaignNo}>
                                                 NO
@@ -139,7 +139,43 @@ const Chatbot = ({
                                                 YES
                                             </Button>
                                         </Box>
+                                    )} */}
+
+                                    {message.text.includes("Would you like some call campaign suggestions") && (
+                                        <Box sx={{ display: "flex", gap: 1, ml: 2, mb: 2 }}>
+                                            <Button
+                                                variant="outlined"
+                                                onClick={handleCallCampaignNo}
+                                                size="small"
+                                                sx={{
+                                                    borderColor: "#ff4d6d",
+                                                    color: "#ff4d6d",
+                                                    "&:hover": {
+                                                        borderColor: "#ff1a43",
+                                                        backgroundColor: "rgba(255, 77, 109, 0.04)",
+                                                    },
+                                                }}
+                                            >
+                                                NO
+                                            </Button>
+                                            <Button
+                                                variant="contained"
+                                                onClick={handleCallCampaignYes}
+                                                size="small"
+                                                sx={{
+                                                    backgroundColor: "#ff4d6d",
+                                                    "&:hover": {
+                                                        backgroundColor: "#ff1a43",
+                                                    },
+                                                }}
+                                            >
+                                                YES
+                                            </Button>
+                                        </Box>
                                     )}
+
+
+
                                     <Paper
                                         elevation={1}
                                         sx={{

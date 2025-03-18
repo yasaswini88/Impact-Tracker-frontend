@@ -14,10 +14,10 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 moment.locale("en-US");
 const localizer = momentLocalizer(moment);
 
-const ReactBigCalendar = () => {
+const ReactBigCalendar = ({ handleOpenNewAppt }) => {
   // const { businessId } = useParams();
   const storedBusinessUser = localStorage.getItem("businessUser");
-const businessId = storedBusinessUser ? JSON.parse(storedBusinessUser).businessId : null;
+  const businessId = storedBusinessUser ? JSON.parse(storedBusinessUser).businessId : null;
 
   const [searchParams] = useSearchParams();
   const appointmentId = searchParams.get("appointmentId");
@@ -31,7 +31,7 @@ const businessId = storedBusinessUser ? JSON.parse(storedBusinessUser).businessI
   const [snackbarMsg, setSnackbarMsg] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
 
-  // [ADDED] State to store the business’s opening/closing times
+  // [ADDED] State to store the business's opening/closing times
   const [businessOpenTime, setBusinessOpenTime] = useState("");
   const [businessCloseTime, setBusinessCloseTime] = useState("");
 
@@ -77,13 +77,6 @@ const businessId = storedBusinessUser ? JSON.parse(storedBusinessUser).businessI
       console.error("Error fetching business info:", error);
     }
   };
-
-  // 2) On mount or change of businessId, fetch data
-  // useEffect(() => {
-  //   if (businessId) {
-  //     fetchAppointments(businessId);
-  //   }
-  // }, [businessId]);
 
   useEffect(() => {
     let intervalId;
@@ -206,27 +199,32 @@ const businessId = storedBusinessUser ? JSON.parse(storedBusinessUser).businessI
   };
 
   return (
-    <div style={{ margin: "20px" }}>
-      <h1>Appointment</h1>
-      <Grid item xs={12} md={2.4} sx={{ display: 'flex', alignItems: 'center' }}>  {/* 20% of the row */}
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        startIcon={<CalendarMonthIcon />}
-                        sx={{
-                            backgroundColor: '#ff4d6d',
-                            height: '56px',
-                            '&:hover': {
-                                backgroundColor: '#6b8c84'
-                            },
-                            fontSize: '1rem',
-                            fontWeight: 'bold'
-                        }}
-                        // onClick={handleOpenNewAppt}
-                    >
-                        New Appointment
-                    </Button>
-                </Grid>
+    <div style={{ margin: "10px" }}>
+      <Box sx={{ mb: 3 }}>
+        <Button
+          variant="contained"
+          startIcon={<CalendarMonthIcon />}
+          onClick={handleOpenNewAppt}
+          sx={{
+            backgroundColor: '#ff4d6d',
+            color: 'white',
+            py: 1.5,
+            px: 3,
+            borderRadius: 2,
+            fontWeight: 600,
+            textTransform: 'none',
+            fontSize: '1rem',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            '&:hover': {
+              backgroundColor: '#ff3d5d',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            }
+          }}
+        >
+          New Appointment
+        </Button>
+      </Box>
+      
       {appointmentId && <h2>Appointment ID to Reschedule: {appointmentId}</h2>}
 
       {/* Legend */}
@@ -234,15 +232,21 @@ const businessId = storedBusinessUser ? JSON.parse(storedBusinessUser).businessI
         display="flex"
         justifyContent="space-around"
         mb={2}
-        sx={{ border: "1px solid #ccc", borderRadius: "5px", padding: "10px" }}
+        sx={{ 
+          border: "1px solid rgba(255, 77, 109, 0.2)",
+          borderRadius: "8px", 
+          padding: "12px",
+          backgroundColor: "white"
+        }}
       >
         <Box display="flex" alignItems="center">
           <Box
             sx={{
-              width: "15px",
-              height: "15px",
+              width: "16px",
+              height: "16px",
               backgroundColor: "#add8e6", // Blue
               marginRight: "10px",
+              borderRadius: "3px"
             }}
           ></Box>
           <Typography>Original Appointment</Typography>
@@ -250,10 +254,11 @@ const businessId = storedBusinessUser ? JSON.parse(storedBusinessUser).businessI
         <Box display="flex" alignItems="center">
           <Box
             sx={{
-              width: "15px",
-              height: "15px",
+              width: "16px",
+              height: "16px",
               backgroundColor: "#ffcccb", // Red
               marginRight: "10px",
+              borderRadius: "3px"
             }}
           ></Box>
           <Typography>Rescheduled Appointment</Typography>
@@ -271,7 +276,7 @@ const businessId = storedBusinessUser ? JSON.parse(storedBusinessUser).businessI
         view={currentView}
         defaultView="month"
         views={["month", "week", "day", "agenda"]}
-        style={{ height: "80vh" }}
+        style={{ height: "70vh" }}
         onSelectEvent={(event) => alert(`Event clicked: ${event.title}`)}
         onSelectSlot={handleSelectSlot}
         popup

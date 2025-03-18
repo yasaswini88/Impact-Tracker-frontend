@@ -4,6 +4,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { CircularProgress, Typography, Box } from "@mui/material";
 
+
+
 const AiLoadingAnimation = () => {
   return (
     <Box
@@ -20,7 +22,16 @@ const AiLoadingAnimation = () => {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <CircularProgress sx={{ color: "#ff4d6d" }} size={70} />
+        {/* <CircularProgress sx={{ color: "#ff4d6d" }} size={70} /> */}
+        <l-reuleaux
+  size="100"
+  stroke="8"
+  stroke-length="0.2"
+  bg-opacity="0.1"
+  speed="1.2"
+  color="blue"
+/>
+
       </motion.div>
       <motion.div
         initial={{ opacity: 0 }}

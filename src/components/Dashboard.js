@@ -38,6 +38,15 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import AiLoadingAnimation from "./AiLoadingAnimation";
 import CallHistory from "./CallHistory";
+import { Rnd } from "react-rnd";
+
+import ExpandableCard from './ExpandableCard';
+import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
+import ExpandableCalendar from './ExpandableCalendar';
+import ExpandableCallHistory from './ExpandableCallHistory';
+
+
 
 
 
@@ -674,6 +683,7 @@ const Dashboard = () => {
         async function fetchCallVolumeTrend() {
             try {
                 setAItrendLoading(true);
+                await new Promise(res => setTimeout(res, 3000));
                 // Now the request body has only the arrays
                 const requestBody = {
                     answered: [42, 109, 100, 31, 40, 28, 14],
@@ -755,165 +765,57 @@ const Dashboard = () => {
         <Grid container spacing={3} sx={{ p: 3 }}>
             {/* TOP CARD */}
             {/* TOP CARD */}
+            {/* TOP CARD */}
             <Grid item xs={12}>
-                <Card sx={{
-                    ...cardStyle,
-                    backgroundColor: theme.palette.background.paper,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                    borderRadius: 2,
-                    position: 'relative',
-                    overflow: 'visible',
-                    border: '1px solid rgba(255, 77, 109, 0.2)',  // Much lighter pink border
-                    '&:hover': {
-                        borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover but still light
-                        transition: 'border-color 0.3s ease'
-                    }
-                }}>
-                    <CardContent sx={{ p: 4 }}>
-                        {/* Title Section */}
-                        <Box sx={{
-                            mb: 3,
-                            textAlign: 'center'  // Center the title
-                        }}>
+                <ExpandableCard
+                    title={`AI Insights for ${businessInfo ? businessInfo.businessName : "Business"}`}
+                    subtitle="Welcome to your dashboard! Here are some insights for your business."
+                    defaultExpanded={true}
+                    sx={{ backgroundColor: theme.palette.background.paper }}
+                >
+                    <Box sx={{ mb: 4, textAlign: 'center' }}>
+                        {aITrendLoading ? (
+                            <AiLoadingAnimation />
+                        ) : (
                             <Typography
-                                variant="h4"
+                                variant="body1"
                                 sx={{
-                                    fontWeight: 700,
-                                    color: '#ff4d6d',  // Changed to pink color
-                                    mb: 1,
-                                    fontSize: {
-                                        xs: '1.5rem',
-                                        sm: '1.7rem',
-                                        md: '1.8rem'
-                                    }
+                                    mb: 2,
+                                    color: theme.palette.text.primary,
+                                    lineHeight: 1.6,
                                 }}
                             >
-                                AI Insights for {businessInfo ? businessInfo.businessName : "Business"}
+                                {weeklySentiment.trend_summary}
                             </Typography>
+                        )}
+
+                        {callVolumeTrend && !aITrendLoading && (
                             <Typography
-                                variant="subtitle1"
+                                variant="body1"
                                 sx={{
-                                    color: theme.palette.text.secondary,
-                                    fontSize: '1.1rem'
+                                    color: theme.palette.text.primary,
+                                    lineHeight: 1.6
                                 }}
                             >
-                                Welcome to your dashboard! Here are some insights for your business.
+                                {callVolumeTrend.call_volume_summary}
                             </Typography>
-                        </Box>
+                        )}
+                    </Box>
 
-                        {/* Content Section */}
-                        <Box sx={{
-                            mb: 4,
-                            textAlign: 'center'  // Center the content
-                        }}>
-
-                            {aITrendLoading ? (
-                                <AiLoadingAnimation />
-                            ) : (
-                                <Typography
-                                    variant="body1"
-                                    sx={{
-                                        mb: 2,
-                                        color: theme.palette.text.primary,
-                                        lineHeight: 1.6,
-                                    }}
-                                >
-                                    {weeklySentiment.trend_summary}
-                                </Typography>
-                            )}
-
-                            {callVolumeTrend && !aITrendLoading && (
-                                <Typography
-                                    variant="body1"
-                                    sx={{
-                                        color: theme.palette.text.primary,
-                                        lineHeight: 1.6
-                                    }}
-                                >
-                                    {callVolumeTrend.call_volume_summary}
-                                </Typography>
-                            )}
-                        </Box>
-
-                        {/* Buttons Section */}
-                        <Box sx={{
-                            display: 'flex',
-                            gap: 2,
-                            alignItems: 'center',
-                            justifyContent: 'center',  // Center the buttons
-                            flexWrap: 'wrap'
-                        }}>
-                            {callCampaignState === "Y" ? (
-                                <Button
-                                    variant="contained"
-                                    onClick={() => {
-                                        console.log("Opening the Call Campaign Form...");
-                                        setOpenCampaignForm(true);
-                                    }}
-                                    sx={{
-                                        py: 1.5,
-                                        px: 4,
-                                        borderRadius: 2,
-                                        fontWeight: 600,
-                                        textTransform: 'none',
-                                        fontSize: '1rem',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                        backgroundColor: '#ff4d6d',  // Changed to pink color
-                                        '&:hover': {
-                                            backgroundColor: '#ff3d5d',  // Slightly darker on hover
-                                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                                        }
-                                    }}
-                                >
-                                    Call Campaign Form
-                                </Button>
-                            ) : (
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => {
-                                        if (googleReviewState === "Y") {
-                                            fetchOrGenerateInsights();
-                                            promptForCallCampaign();
-                                        } else if (googleReviewState === "N") {
-                                            setSnackMessage("You already said NO to Google Reviews.");
-                                            setSnackSeverity("info");
-                                            setSnackOpen(true);
-                                        } else if (googleReviewState === "Pending") {
-                                            const alertMessage = {
-                                                sender: 'bot',
-                                                text: "Negative Review Alert...\nWould you like us to fetch Google Reviews?"
-                                            };
-                                            setChatMessages([...chatMessages, alertMessage]);
-                                            setShowChatbot(true);
-                                        } else {
-                                            createPendingConfirmation();
-                                        }
-                                    }}
-                                    sx={{
-                                        py: 1.5,
-                                        px: 4,
-                                        borderRadius: 2,
-                                        fontWeight: 600,
-                                        textTransform: 'none',
-                                        fontSize: '1rem',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                        backgroundColor: '#ff4d6d',  // Changed to pink color
-                                        '&:hover': {
-                                            backgroundColor: '#ff3d5d',  // Slightly darker on hover
-                                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                                        }
-                                    }}
-                                >
-                                    Show More
-                                </Button>
-                            )}
-
+                    {/* Buttons Section */}
+                    <Box sx={{
+                        display: 'flex',
+                        gap: 2,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexWrap: 'wrap'
+                    }}>
+                        {callCampaignState === "Y" ? (
                             <Button
-                                variant="outlined"
-                                onClick={async () => {
-                                    await fetchPastCampaigns();
-                                    setOpenPastCampaignsDialog(true);
+                                variant="contained"
+                                onClick={() => {
+                                    console.log("Opening the Call Campaign Form...");
+                                    setOpenCampaignForm(true);
                                 }}
                                 sx={{
                                     py: 1.5,
@@ -922,21 +824,85 @@ const Dashboard = () => {
                                     fontWeight: 600,
                                     textTransform: 'none',
                                     fontSize: '1rem',
-                                    borderWidth: 2,
-                                    color: '#ff4d6d',  // Changed to pink color
-                                    borderColor: '#ff4d6d',  // Changed to pink color
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                    backgroundColor: '#ff4d6d',
                                     '&:hover': {
-                                        borderWidth: 2,
-                                        borderColor: '#ff3d5d',  // Slightly darker on hover
-                                        backgroundColor: 'rgba(255, 77, 109, 0.1)'  // Light pink background on hover
+                                        backgroundColor: '#ff3d5d',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
                                     }
                                 }}
                             >
-                                View Past Campaigns
+                                Call Campaign Form
                             </Button>
-                        </Box>
-                    </CardContent>
-                </Card>
+                        ) : (
+                          <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => {
+                                    if (googleReviewState === "Y") {
+                                        fetchOrGenerateInsights();
+                                        promptForCallCampaign();
+                                    } else if (googleReviewState === "N") {
+                                        setSnackMessage("You already said NO to Google Reviews.");
+                                        setSnackSeverity("info");
+                                        setSnackOpen(true);
+                                    } else if (googleReviewState === "Pending") {
+                                        const alertMessage = {
+                                            sender: 'bot',
+                                            text: "Negative Review Alert...\nWould you like us to fetch Google Reviews?"
+                                        };
+                                        setChatMessages([...chatMessages, alertMessage]);
+                                        setShowChatbot(true);
+                                    } else {
+                                        createPendingConfirmation();
+                                    }
+                                }}
+                                sx={{
+                                    py: 1.5,
+                                    px: 4,
+                                    borderRadius: 2,
+                                    fontWeight: 600,
+                                    textTransform: 'none',
+                                    fontSize: '1rem',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                    backgroundColor: '#ff4d6d',
+                                    '&:hover': {
+                                        backgroundColor: '#ff3d5d',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                                    }
+                                }}
+                            >
+                                Show More
+                            </Button>
+                        )}
+
+                        <Button
+                            variant="outlined"
+                            onClick={async () => {
+                                await fetchPastCampaigns();
+                                setOpenPastCampaignsDialog(true);
+                            }}
+                            sx={{
+                                py: 1.5,
+                                px: 4,
+                                borderRadius: 2,
+                                fontWeight: 600,
+                                textTransform: 'none',
+                                fontSize: '1rem',
+                                borderWidth: 2,
+                                color: '#ff4d6d',
+                                borderColor: '#ff4d6d',
+                                '&:hover': {
+                                    borderWidth: 2,
+                                    borderColor: '#ff3d5d',
+                                    backgroundColor: 'rgba(255, 77, 109, 0.1)'
+                                }
+                            }}
+                        >
+                            View Past Campaigns
+                        </Button>
+                    </Box>
+                </ExpandableCard>
             </Grid>
 
             {/* BUSINESS INFO ROW */}
@@ -1106,35 +1072,26 @@ const Dashboard = () => {
             <Grid item xs={12} container spacing={3}
             >
                 {/* Call History - 40% Width */}
-                <Grid item xs={12} md={5} sx={{
-                    p: 2,
-                    boxShadow: 'none', // Removes any shadow
-                    border: 'none', // Completely removes the border
-                }}>
-                    <CallHistory businessId={businessId} />
+                <Grid item xs={12} md={5}>
+                    <ExpandableCallHistory
+                        businessId={businessId}
+                        title="Call History"
+                        subtitle="Track recent customer interactions"
+                        defaultExpanded={true}
+                    />
                 </Grid>
 
 
                 {/* React Big Calendar - 60% Width */}
                 <Grid item xs={12} md={7}>
-                    <Paper sx={{
-                        ...cardStyle,
-                        p: 2,  // Increased padding slightly
-                        border: '1px solid rgba(255, 77, 109, 0.2)',  // Light pink border
-                        borderRadius: 2,
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                        '&:hover': {
-                            borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover
-                            transition: 'border-color 0.3s ease'
-                        },
-                        "& .MuiTableContainer-root": {
-                            borderRadius: theme.shape.borderRadius,
-                            border: `1px solid ${theme.palette.divider}`,
-                        },
-                    }}>
-                        <ReactBigCalendar />
-                    </Paper>
+                    <ExpandableCalendar
+                        title="Appointments Calendar"
+                        subtitle="View and manage your upcoming appointments"
+                        defaultExpanded={true}
+                        // handleOpenNewAppt={handleOpenNewAppt}
+                    />
                 </Grid>
+
             </Grid>
 
             {/* DIALOG for new Appt */}

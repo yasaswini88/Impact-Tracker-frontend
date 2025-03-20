@@ -1,7 +1,6 @@
-// src/components/AppBar.js
 import React from "react";
 import { AppBar, Toolbar, Typography, Button, Box, IconButton } from "@mui/material";
-import MenuIcon from '@mui/icons-material/Menu';
+import MenuIcon from "@mui/icons-material/Menu";
 import { Link, useNavigate } from "react-router-dom";
 
 // Redux
@@ -19,30 +18,33 @@ const MyAppBar = () => {
 
   return (
     <AppBar position="static" sx={{ backgroundColor: "#ff4d6d" }}>
-      <Toolbar>
-        {/* App Title */}
-        <IconButton
-          size="large"
-          edge="start"
-          color="inherit"
-          aria-label="menu"
-          sx={{ mr: 2 }}
-        >
-          <MenuIcon />
-        </IconButton>
-        <Typography
-          variant="h6"
-          sx={{ flexGrow: 1, fontWeight: "bold", cursor: "pointer" }}
-          onClick={() => navigate("/")}
-        >
-          Impact Tracker
-        </Typography>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        {/* Left side: IconButton and Title */}
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: "bold", cursor: "pointer" }}
+            onClick={() => navigate("/")}
+          >
+            Map Communications
+          </Typography>
+        </Box>
 
+        {/* Right side: Buttons */}
         <Box sx={{ display: "flex", gap: 2 }}>
           <Button
             color="inherit"
             component={Link}
-            to="/dashboard/1" 
+            to="/dashboard/1"
             sx={{ fontWeight: "bold" }}
           >
             Dashboard
@@ -50,7 +52,7 @@ const MyAppBar = () => {
           <Button
             color="inherit"
             component={Link}
-            to="/business-calendar/1" 
+            to="/business-calendar/1"
             sx={{ fontWeight: "bold" }}
           >
             Calendar

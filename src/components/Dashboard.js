@@ -158,7 +158,7 @@ const Dashboard = () => {
             dataLabels: { enabled: false },
             stroke: { curve: "smooth" },
             xaxis: {
-                categories: [ "sep", "oct", "nov", "dec", "jan", "feb", "mar"],
+                categories: ["sep", "oct", "nov", "dec", "jan", "feb", "mar"],
                 title: { text: "Last 6 Months" },
             },
             yaxis: {
@@ -175,7 +175,7 @@ const Dashboard = () => {
             {
                 name: "New Clients",
                 // data: [44, 55, 41, 37, 22, 43, 21],
-                 data: [53, 45, 38, 25, 21,19, 17],
+                data: [53, 45, 38, 25, 21, 19, 17],
             },
             {
                 name: "Existing Clients",
@@ -444,18 +444,37 @@ const Dashboard = () => {
     };
 
 
+    // const getInsightsDirectly = async () => {
+    //     try {
+    //         // Try GET /api/v1/insights/{businessId}
+    //         const getUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
+    //         const getResp = await axios.get(getUrl);
+    //         return getResp.data;  // your { positivePoints, negativePoints, insights }
+    //     } catch (err) {
+    //         // If 404 => do generate => then re-fetch
+    //         if (err.response && err.response.status === 404) {
+    //             const postUrl = `http://52.3.145.159:8080/api/v1/insights/generate/${businessId}`;
+    //             await axios.post(postUrl);
+
+    //             const finalUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
+    //             const finalGet = await axios.get(finalUrl);
+    //             return finalGet.data;
+    //         } else {
+    //             console.error("Could not fetch or generate insights:", err);
+    //             return null;
+    //         }
+    //     }
+    // };
+
     const getInsightsDirectly = async () => {
         try {
-            // Try GET /api/v1/insights/{businessId}
             const getUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
             const getResp = await axios.get(getUrl);
-            return getResp.data;  // your { positivePoints, negativePoints, insights }
+            return getResp.data;
         } catch (err) {
-            // If 404 => do generate => then re-fetch
             if (err.response && err.response.status === 404) {
                 const postUrl = `http://52.3.145.159:8080/api/v1/insights/generate/${businessId}`;
                 await axios.post(postUrl);
-
                 const finalUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
                 const finalGet = await axios.get(finalUrl);
                 return finalGet.data;
@@ -465,6 +484,7 @@ const Dashboard = () => {
             }
         }
     };
+    
 
 
     // In Dashboard.js (or pass them down similarly to handleYesClick/handleNoClick)
@@ -476,6 +496,8 @@ const Dashboard = () => {
             setSnackMessage(resp.data);
             setSnackSeverity("success");
             setSnackOpen(true);
+
+            setCallCampaignState("Y");
 
             // The original message you had:
             const msg = {
@@ -564,54 +586,114 @@ const Dashboard = () => {
 
 
     // This is what happens when the user clicks "Show More"
+    // const handleShowMoreClick = async () => {
+    //     try {
+    //         // 1) Fetch the business_google_review_confirmation
+    //         const url = `http://52.3.145.159:8080/api/v1/review-confirmation/${businessId}`;
+    //         const response = await axios.get(url);
+    //         const confirmation = response.data; // { userResponse: "Y"|"N"|"Pending" }
+    //         setReviewConfirmation(confirmation);
+
+    //         if (!confirmation || confirmation.userResponse === "Pending") {
+    //             // Scenario 1: user never responded => we prompt them
+    //             const alertMessage = {
+    //                 sender: "bot",
+    //                 text: `Would you like to see your Google Reviews Analysis?\n\nPlease select YES or NO:`,
+    //             };
+    //             setChatMessages((prev) => [...prev, alertMessage]);
+    //             setShowChatbot(true);
+
+    //         } else if (confirmation.userResponse === "Y") {
+    //             // Scenario 2: user responded "Y" previously
+    //             // => fetch or generate insights automatically
+    //             await fetchOrGenerateInsights();
+
+    //             // Then prompt for the call campaign
+    //             promptForCallCampaign();
+
+    //             // Optionally show the chatbot so they see the insights
+    //             setShowChatbot(true);
+
+    //         } else if (confirmation.userResponse === "N") {
+    //             // They previously said "No"
+    //             // => do nothing, or show a small snack
+    //             setSnackMessage("You already opted out of Google Review analysis.");
+    //             setSnackSeverity("info");
+    //             setSnackOpen(true);
+    //         }
+    //     } catch (err) {
+    //         // Possibly 404 => create "Pending"
+    //         console.log("Review confirmation record not found, creating one...");
+    //         await createPendingConfirmation();
+    //         // Then show the prompt:
+    //         const alertMessage = {
+    //             sender: "bot",
+    //             text: `Would you like to see your Google Reviews Analysis?\n\nPlease select YES or NO:`,
+    //         };
+    //         setChatMessages((prev) => [...prev, alertMessage]);
+    //         setShowChatbot(true);
+    //     }
+    // };
     const handleShowMoreClick = async () => {
         try {
-            // 1) Fetch the business_google_review_confirmation
             const url = `http://52.3.145.159:8080/api/v1/review-confirmation/${businessId}`;
             const response = await axios.get(url);
-            const confirmation = response.data; // { userResponse: "Y"|"N"|"Pending" }
+            const confirmation = response.data;
             setReviewConfirmation(confirmation);
 
             if (!confirmation || confirmation.userResponse === "Pending") {
-                // Scenario 1: user never responded => we prompt them
                 const alertMessage = {
                     sender: "bot",
-                    text: `Would you like to see your Google Reviews Analysis?\n\nPlease select YES or NO:`,
+                    text: "Negative Review Alert...\nWould you like us to fetch Google Reviews?\n\nPlease select YES or NO:",
                 };
                 setChatMessages((prev) => [...prev, alertMessage]);
                 setShowChatbot(true);
-
             } else if (confirmation.userResponse === "Y") {
-                // Scenario 2: user responded "Y" previously
-                // => fetch or generate insights automatically
-                await fetchOrGenerateInsights();
+                const insightsData = await getInsightsDirectly();
 
-                // Then prompt for the call campaign
-                promptForCallCampaign();
+                if (insightsData) {
+                    const insightsText =
+                        `Review Insights:\n\n` +
+                        `Positive Points: ${insightsData.positivePoints}\n\n` +
+                        `Negative Points: ${insightsData.negativePoints}\n\n` +
+                        `Overall Summary: ${insightsData.insights}`;
 
-                // Optionally show the chatbot so they see the insights
-                setShowChatbot(true);
-
+                        setChatMessages((prev) => {
+                            const newMessages = [
+                                ...prev,
+                                { sender: "bot", text: "Here are your previously fetched Google Review insights:" },
+                                { sender: "bot", text: insightsText },
+                                {
+                                    sender: 'bot',
+                                    text: "Would you like some call campaign suggestions based on these insights?"
+                                }
+                            ];
+                            console.log("Chat Messages updated with:", newMessages);
+                            return newMessages;
+                        });
+                        
+                    setShowChatbot(true);
+                } else {
+                    setSnackMessage("Failed to fetch insights.");
+                    setSnackSeverity("error");
+                    setSnackOpen(true);
+                }
             } else if (confirmation.userResponse === "N") {
-                // They previously said "No"
-                // => do nothing, or show a small snack
-                setSnackMessage("You already opted out of Google Review analysis.");
+                setSnackMessage("You previously opted out of Google Review analysis.");
                 setSnackSeverity("info");
                 setSnackOpen(true);
             }
         } catch (err) {
-            // Possibly 404 => create "Pending"
-            console.log("Review confirmation record not found, creating one...");
             await createPendingConfirmation();
-            // Then show the prompt:
             const alertMessage = {
                 sender: "bot",
-                text: `Would you like to see your Google Reviews Analysis?\n\nPlease select YES or NO:`,
+                text: "Negative Review Alert...\nWould you like us to fetch Google Reviews?\n\nPlease select YES or NO:",
             };
             setChatMessages((prev) => [...prev, alertMessage]);
             setShowChatbot(true);
         }
     };
+
 
     // Chat input
     const handleChatSubmit = () => {
@@ -837,7 +919,7 @@ const Dashboard = () => {
                                 Call Campaign Form
                             </Button>
                         ) : (
-                          <Button
+                            <Button
                                 variant="contained"
                                 color="primary"
                                 onClick={() => {
@@ -1090,7 +1172,7 @@ const Dashboard = () => {
                         title="Appointments Calendar"
                         subtitle="View and manage your upcoming appointments"
                         defaultExpanded={true}
-                        // handleOpenNewAppt={handleOpenNewAppt}
+                    // handleOpenNewAppt={handleOpenNewAppt}
                     />
                 </Grid>
 

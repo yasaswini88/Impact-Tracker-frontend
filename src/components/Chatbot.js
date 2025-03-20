@@ -50,7 +50,7 @@ const Chatbot = ({
     return (
         <>
             {/* Floating Action Button (the Chatbot icon) */}
-            {/* <Fab
+            <Fab
                 color="primary"
                 aria-label="chat"
                 onClick={toggleChatbot}
@@ -78,7 +78,7 @@ const Chatbot = ({
                         borderRadius: "16px",
                     }}
                 />
-            </Fab> */}
+            </Fab>
 
             {/* The Drawer for Chat UI */}
             <Drawer

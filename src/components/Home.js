@@ -51,7 +51,9 @@ const Home = () => {
       dispatch(loginSuccess(userPayload)); 
       
       // Then navigate
-      navigate(`/business-calendar/${data.businessId}`);
+      // navigate(`/business-calendar/${data.businessId}`);
+
+      navigate('/dashboard/1');
 
     } catch (error) {
       console.error("Login error:", error);

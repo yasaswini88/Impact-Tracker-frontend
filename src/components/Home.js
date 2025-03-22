@@ -4,12 +4,12 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 // MUI v5 components
-import { 
-  Box, 
-  Paper, 
-  Typography, 
-  TextField, 
-  Button 
+import {
+  Box,
+  Paper,
+  Typography,
+  TextField,
+  Button
 } from "@mui/material";
 
 // Redux
@@ -27,34 +27,40 @@ const Home = () => {
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(loginStart()); // set loading & clear error
+    dispatch(loginStart());
+
+    // Admin shortcut login
+    if (email === "Anusha@gmail.com" && password === "Anusha") {
+      const adminUser = {
+        businessId: -1, // special ID for admin
+        email,
+        businessType: "admin"
+      };
+
+      dispatch(loginSuccess(adminUser));
+      localStorage.setItem("businessUser", JSON.stringify(adminUser));
+      navigate("/sales-admin-dashboard");
+      // navigate("/sales-admin-dashboard2");
+      return;
+    }
 
     try {
-      // Make POST request to your login endpoint
       const res = await axios.post("http://52.3.145.159:8080/api/v1/businesses/login", {
         email,
         password
       });
+
       const data = res.data;
 
-      
-      console.log("Login success:", data);
-
-      // We'll store what we need in Redux. 
-      // For example, "businessId" and "email".
       const userPayload = {
         businessId: data.businessId,
-        email: email, 
+        email: data.email,
         businessType: data.businessType
       };
 
-      dispatch(loginSuccess(userPayload)); 
-      
-      // Then navigate
-      // navigate(`/business-calendar/${data.businessId}`);
-
-      navigate('/dashboard/1');
-
+      dispatch(loginSuccess(userPayload));
+      localStorage.setItem("businessUser", JSON.stringify(userPayload));
+      navigate(`/dashboard/${data.businessId}`);
     } catch (error) {
       console.error("Login error:", error);
       dispatch(loginFailure("Invalid email or password."));
@@ -65,25 +71,22 @@ const Home = () => {
   return (
     <Box
       sx={{
-        // The background image
         backgroundImage: `url("https://media.istockphoto.com/id/1413190521/vector/customer-service-call-center-hotline-operators-with-headphones-on-laptop-screen.jpg?s=612x612&w=0&k=20&c=3f4VzU7IbJoZt4adKXuPnhRroUl-3QsLmGN6LjblJqk=")`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         minHeight: "100vh",
-        // We'll use a dark overlay by layering a gradient
         backgroundColor: "rgba(0, 0, 0, 0.5)",
-        backgroundBlendMode: "darken", 
+        backgroundBlendMode: "darken",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
       }}
     >
-      {/* The Paper that acts as the login form container */}
-      <Paper 
-        elevation={3} 
+      <Paper
+        elevation={3}
         sx={{
-          p: 4, 
-          width: 300, 
+          p: 4,
+          width: 300,
           opacity: 0.9
         }}
       >
@@ -112,9 +115,9 @@ const Home = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <Button 
-            variant="contained" 
-            color="primary" 
+          <Button
+            variant="contained"
+            color="primary"
             fullWidth
             type="submit"
             sx={{ mt: 2 }}

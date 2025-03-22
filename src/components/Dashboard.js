@@ -45,6 +45,7 @@ import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import ExpandableCalendar from './ExpandableCalendar';
 import ExpandableCallHistory from './ExpandableCallHistory';
+import GoogleReviewInsights from "./GoogleReviewInsights";
 
 
 
@@ -73,11 +74,17 @@ import {
 // We'll import your ReactBigCalendar component
 import ReactBigCalendar from "./ReactBigCalendar";
 
-const Dashboard = () => {
+const Dashboard = ({ showAiInsights = true, showCallHistory = true, 
+    showAppointmentsCalendar = true ,
+
+showGoogleReviewInsights=false}) => {
+
     const storedBusinessUser = localStorage.getItem("businessUser");
     const businessUser = storedBusinessUser ? JSON.parse(storedBusinessUser) : null;
     const businessId = businessUser ? businessUser.businessId : null;
     const businessType = businessUser ? businessUser.businessType : null;
+    const isAdmin = businessUser?.email?.toLowerCase() === "anusha@gmail.com";
+
 
     const [googleReviewState, setGoogleReviewState] = useState(null);  // "Pending","Y","N","NONE"
     const [callCampaignState, setCallCampaignState] = useState(null);  // ...
@@ -444,27 +451,7 @@ const Dashboard = () => {
     };
 
 
-    // const getInsightsDirectly = async () => {
-    //     try {
-    //         // Try GET /api/v1/insights/{businessId}
-    //         const getUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
-    //         const getResp = await axios.get(getUrl);
-    //         return getResp.data;  // your { positivePoints, negativePoints, insights }
-    //     } catch (err) {
-    //         // If 404 => do generate => then re-fetch
-    //         if (err.response && err.response.status === 404) {
-    //             const postUrl = `http://52.3.145.159:8080/api/v1/insights/generate/${businessId}`;
-    //             await axios.post(postUrl);
 
-    //             const finalUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
-    //             const finalGet = await axios.get(finalUrl);
-    //             return finalGet.data;
-    //         } else {
-    //             console.error("Could not fetch or generate insights:", err);
-    //             return null;
-    //         }
-    //     }
-    // };
 
     const getInsightsDirectly = async () => {
         try {
@@ -484,7 +471,7 @@ const Dashboard = () => {
             }
         }
     };
-    
+
 
 
     // In Dashboard.js (or pass them down similarly to handleYesClick/handleNoClick)
@@ -658,20 +645,20 @@ const Dashboard = () => {
                         `Negative Points: ${insightsData.negativePoints}\n\n` +
                         `Overall Summary: ${insightsData.insights}`;
 
-                        setChatMessages((prev) => {
-                            const newMessages = [
-                                ...prev,
-                                { sender: "bot", text: "Here are your previously fetched Google Review insights:" },
-                                { sender: "bot", text: insightsText },
-                                {
-                                    sender: 'bot',
-                                    text: "Would you like some call campaign suggestions based on these insights?"
-                                }
-                            ];
-                            console.log("Chat Messages updated with:", newMessages);
-                            return newMessages;
-                        });
-                        
+                    setChatMessages((prev) => {
+                        const newMessages = [
+                            ...prev,
+                            { sender: "bot", text: "Here are your previously fetched Google Review insights:" },
+                            { sender: "bot", text: insightsText },
+                            {
+                                sender: 'bot',
+                                text: "Would you like some call campaign suggestions based on these insights?"
+                            }
+                        ];
+                        console.log("Chat Messages updated with:", newMessages);
+                        return newMessages;
+                    });
+
                     setShowChatbot(true);
                 } else {
                     setSnackMessage("Failed to fetch insights.");
@@ -850,56 +837,122 @@ const Dashboard = () => {
             {/* TOP CARD */}
             {/* TOP CARD */}
             {/* TOP CARD */}
-            <Grid item xs={12}>
-                <ExpandableCard
-                    title={`AI Insights for ${businessInfo ? businessInfo.businessName : "Business"}`}
-                    subtitle="Welcome to your dashboard! Here are some insights for your business."
-                    defaultExpanded={true}
-                    sx={{ backgroundColor: theme.palette.background.paper }}
-                >
-                    <Box sx={{ mb: 4, textAlign: 'center' }}>
-                        {aITrendLoading ? (
-                            <AiLoadingAnimation />
-                        ) : (
-                            <Typography
-                                variant="body1"
-                                sx={{
-                                    mb: 2,
-                                    color: theme.palette.text.primary,
-                                    lineHeight: 1.6,
-                                }}
-                            >
-                                {weeklySentiment.trend_summary}
-                            </Typography>
-                        )}
+            {showAiInsights && (
+                <Grid item xs={12}>
+                    <ExpandableCard
+                        title={`AI Insights for ${businessInfo ? businessInfo.businessName : "Business"}`}
+                        subtitle="Welcome to your dashboard! Here are some insights for your business."
+                        defaultExpanded={true}
+                        sx={{ backgroundColor: theme.palette.background.paper }}
+                    >
+                        <Box sx={{ mb: 4, textAlign: 'center' }}>
+                            {aITrendLoading ? (
+                                <AiLoadingAnimation />
+                            ) : (
+                                <Typography
+                                    variant="body1"
+                                    sx={{
+                                        mb: 2,
+                                        color: theme.palette.text.primary,
+                                        lineHeight: 1.6,
+                                    }}
+                                >
+                                    {weeklySentiment.trend_summary}
+                                </Typography>
+                            )}
 
-                        {callVolumeTrend && !aITrendLoading && (
-                            <Typography
-                                variant="body1"
-                                sx={{
-                                    color: theme.palette.text.primary,
-                                    lineHeight: 1.6
-                                }}
-                            >
-                                {callVolumeTrend.call_volume_summary}
-                            </Typography>
-                        )}
-                    </Box>
+                            {callVolumeTrend && !aITrendLoading && (
+                                <Typography
+                                    variant="body1"
+                                    sx={{
+                                        color: theme.palette.text.primary,
+                                        lineHeight: 1.6
+                                    }}
+                                >
+                                    {callVolumeTrend.call_volume_summary}
+                                </Typography>
+                            )}
+                        </Box>
 
-                    {/* Buttons Section */}
-                    <Box sx={{
-                        display: 'flex',
-                        gap: 2,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexWrap: 'wrap'
-                    }}>
-                        {callCampaignState === "Y" ? (
+                        {/* Buttons Section */}
+                        <Box sx={{
+                            display: 'flex',
+                            gap: 2,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexWrap: 'wrap'
+                        }}>
+                            {callCampaignState === "Y" ? (
+                                <Button
+                                    variant="contained"
+                                    onClick={() => {
+                                        console.log("Opening the Call Campaign Form...");
+                                        setOpenCampaignForm(true);
+                                    }}
+                                    sx={{
+                                        py: 1.5,
+                                        px: 4,
+                                        borderRadius: 2,
+                                        fontWeight: 600,
+                                        textTransform: 'none',
+                                        fontSize: '1rem',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                        backgroundColor: '#ff4d6d',
+                                        '&:hover': {
+                                            backgroundColor: '#ff3d5d',
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                                        }
+                                    }}
+                                >
+                                    Call Campaign Form
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => {
+                                        if (googleReviewState === "Y") {
+                                            fetchOrGenerateInsights();
+                                            promptForCallCampaign();
+                                        } else if (googleReviewState === "N") {
+                                            setSnackMessage("You already said NO to Google Reviews.");
+                                            setSnackSeverity("info");
+                                            setSnackOpen(true);
+                                        } else if (googleReviewState === "Pending") {
+                                            const alertMessage = {
+                                                sender: 'bot',
+                                                text: "Negative Review Alert...\nWould you like us to fetch Google Reviews?"
+                                            };
+                                            setChatMessages([...chatMessages, alertMessage]);
+                                            setShowChatbot(true);
+                                        } else {
+                                            createPendingConfirmation();
+                                        }
+                                    }}
+                                    sx={{
+                                        py: 1.5,
+                                        px: 4,
+                                        borderRadius: 2,
+                                        fontWeight: 600,
+                                        textTransform: 'none',
+                                        fontSize: '1rem',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                        backgroundColor: '#ff4d6d',
+                                        '&:hover': {
+                                            backgroundColor: '#ff3d5d',
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                                        }
+                                    }}
+                                >
+                                    Show More
+                                </Button>
+                            )}
+
                             <Button
-                                variant="contained"
-                                onClick={() => {
-                                    console.log("Opening the Call Campaign Form...");
-                                    setOpenCampaignForm(true);
+                                variant="outlined"
+                                onClick={async () => {
+                                    await fetchPastCampaigns();
+                                    setOpenPastCampaignsDialog(true);
                                 }}
                                 sx={{
                                     py: 1.5,
@@ -908,86 +961,22 @@ const Dashboard = () => {
                                     fontWeight: 600,
                                     textTransform: 'none',
                                     fontSize: '1rem',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                    backgroundColor: '#ff4d6d',
-                                    '&:hover': {
-                                        backgroundColor: '#ff3d5d',
-                                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                                    }
-                                }}
-                            >
-                                Call Campaign Form
-                            </Button>
-                        ) : (
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={() => {
-                                    if (googleReviewState === "Y") {
-                                        fetchOrGenerateInsights();
-                                        promptForCallCampaign();
-                                    } else if (googleReviewState === "N") {
-                                        setSnackMessage("You already said NO to Google Reviews.");
-                                        setSnackSeverity("info");
-                                        setSnackOpen(true);
-                                    } else if (googleReviewState === "Pending") {
-                                        const alertMessage = {
-                                            sender: 'bot',
-                                            text: "Negative Review Alert...\nWould you like us to fetch Google Reviews?"
-                                        };
-                                        setChatMessages([...chatMessages, alertMessage]);
-                                        setShowChatbot(true);
-                                    } else {
-                                        createPendingConfirmation();
-                                    }
-                                }}
-                                sx={{
-                                    py: 1.5,
-                                    px: 4,
-                                    borderRadius: 2,
-                                    fontWeight: 600,
-                                    textTransform: 'none',
-                                    fontSize: '1rem',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                    backgroundColor: '#ff4d6d',
-                                    '&:hover': {
-                                        backgroundColor: '#ff3d5d',
-                                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                                    }
-                                }}
-                            >
-                                Show More
-                            </Button>
-                        )}
-
-                        <Button
-                            variant="outlined"
-                            onClick={async () => {
-                                await fetchPastCampaigns();
-                                setOpenPastCampaignsDialog(true);
-                            }}
-                            sx={{
-                                py: 1.5,
-                                px: 4,
-                                borderRadius: 2,
-                                fontWeight: 600,
-                                textTransform: 'none',
-                                fontSize: '1rem',
-                                borderWidth: 2,
-                                color: '#ff4d6d',
-                                borderColor: '#ff4d6d',
-                                '&:hover': {
                                     borderWidth: 2,
-                                    borderColor: '#ff3d5d',
-                                    backgroundColor: 'rgba(255, 77, 109, 0.1)'
-                                }
-                            }}
-                        >
-                            View Past Campaigns
-                        </Button>
-                    </Box>
-                </ExpandableCard>
-            </Grid>
+                                    color: '#ff4d6d',
+                                    borderColor: '#ff4d6d',
+                                    '&:hover': {
+                                        borderWidth: 2,
+                                        borderColor: '#ff3d5d',
+                                        backgroundColor: 'rgba(255, 77, 109, 0.1)'
+                                    }
+                                }}
+                            >
+                                View Past Campaigns
+                            </Button>
+                        </Box>
+                    </ExpandableCard>
+                </Grid>
+            )}
 
             {/* BUSINESS INFO ROW */}
             <Grid item xs={12} container spacing={2}>
@@ -1153,30 +1142,29 @@ const Dashboard = () => {
             </Grid>
 
             {/* ROW 2: LEFT = CALL HISTORY, RIGHT = CALENDAR + TABLE */}
-            <Grid item xs={12} container spacing={3}
-            >
-                {/* Call History - 40% Width */}
-                <Grid item xs={12} md={5}>
-                    <ExpandableCallHistory
-                        businessId={businessId}
-                        title="Call History"
-                        subtitle="Track recent customer interactions"
-                        defaultExpanded={true}
-                    />
-                </Grid>
+            <Grid item xs={12} container spacing={3}>
+    {showCallHistory && (
+        <Grid item xs={12} md={5}>
+            <ExpandableCallHistory
+                businessId={businessId}
+                title="Call History"
+                subtitle="Track recent customer interactions"
+                defaultExpanded={true}
+            />
+        </Grid>
+    )}
 
+    {showAppointmentsCalendar && (
+        <Grid item xs={12} md={showCallHistory ? 7 : 12}>
+            <ExpandableCalendar
+                title="Appointments Calendar"
+                subtitle="View and manage your upcoming appointments"
+                defaultExpanded={true}
+            />
+        </Grid>
+    )}
+</Grid>
 
-                {/* React Big Calendar - 60% Width */}
-                <Grid item xs={12} md={7}>
-                    <ExpandableCalendar
-                        title="Appointments Calendar"
-                        subtitle="View and manage your upcoming appointments"
-                        defaultExpanded={true}
-                    // handleOpenNewAppt={handleOpenNewAppt}
-                    />
-                </Grid>
-
-            </Grid>
 
             {/* DIALOG for new Appt */}
             <Dialog
@@ -1555,23 +1543,32 @@ const Dashboard = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {showGoogleReviewInsights && businessId && (
+  <Grid item xs={12}>
+    <GoogleReviewInsights businessId={businessId} />
+  </Grid>
+)}
+
             {/* Chatbot Drawer */}
-            <Chatbot
-                showChatbot={showChatbot}
-                toggleChatbot={toggleChatbot}
-                chatMessages={chatMessages}
-                setChatMessages={setChatMessages}
-                chatInput={chatInput}
-                setChatInput={setChatInput}
-                handleChatSubmit={() => handleChatSubmit()}
-                handleYesClick={handleYesClick}
-                handleNoClick={handleNoClick}
-                reviewConfirmation={reviewConfirmation}
-                reviewInsights={reviewInsights}
-                handleCallCampaignYes={handleCallCampaignYes}
-                handleCallCampaignNo={handleCallCampaignNo}
-                callCampaignStrategies={callCampaignStrategies}
-            />
+            {!isAdmin && (
+                <Chatbot
+                    showChatbot={showChatbot}
+                    toggleChatbot={toggleChatbot}
+                    chatMessages={chatMessages}
+                    setChatMessages={setChatMessages}
+                    chatInput={chatInput}
+                    setChatInput={setChatInput}
+                    handleChatSubmit={handleChatSubmit}
+                    handleYesClick={handleYesClick}
+                    handleNoClick={handleNoClick}
+                    reviewConfirmation={reviewConfirmation}
+                    reviewInsights={reviewInsights}
+                    handleCallCampaignYes={handleCallCampaignYes}
+                    handleCallCampaignNo={handleCallCampaignNo}
+                    callCampaignStrategies={callCampaignStrategies}
+                />
+            )}
 
             {/* Snackbar */}
             <Snackbar

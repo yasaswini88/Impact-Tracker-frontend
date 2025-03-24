@@ -46,6 +46,7 @@ import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import ExpandableCalendar from './ExpandableCalendar';
 import ExpandableCallHistory from './ExpandableCallHistory';
 import GoogleReviewInsights from "./GoogleReviewInsights";
+import FacebookReviewInsights from "./FacebookReviewInsights";
 
 
 
@@ -74,10 +75,15 @@ import {
 // We'll import your ReactBigCalendar component
 import ReactBigCalendar from "./ReactBigCalendar";
 
-const Dashboard = ({ showAiInsights = true, showCallHistory = true, 
-    showAppointmentsCalendar = true ,
+const Dashboard = ({ showAiInsights = true, showCallHistory = true,
+    showAppointmentsCalendar = true,
 
-showGoogleReviewInsights=false}) => {
+    showGoogleReviewInsights = false,
+    showFacebookReviewInsights = false,
+}) => {
+
+    // const businessId = business?.businessId;
+    // const businessType = business?.businessType;
 
     const storedBusinessUser = localStorage.getItem("businessUser");
     const businessUser = storedBusinessUser ? JSON.parse(storedBusinessUser) : null;
@@ -402,10 +408,15 @@ showGoogleReviewInsights=false}) => {
             // 4) Build a single big string from insightsData 
             if (insightsData) {
                 const insightsText =
-                    "Review Insights\n\n" +
-                    `Positive Points: ${insightsData.positivePoints}\n` +
-                    `Negative Points: ${insightsData.negativePoints}\n` +
-                    `Overall Summary: ${insightsData.insights}`;
+                    "Google Review Insights\n\n" +
+                    `Positive Points: ${insightsData.google.positivePoints}\n` +
+                    `Negative Points: ${insightsData.google.negativePoints}\n` +
+                    `Overall Summary: ${insightsData.google.insights}\n\n` +
+                    "Facebook Review Insights\n\n" +
+                    `Positive Points: ${insightsData.facebook.positivePoints}\n` +
+                    `Negative Points: ${insightsData.facebook.negativePoints}\n` +
+                    `Overall Summary: ${insightsData.facebook.insights}`;
+
 
                 setChatMessages((prev) => [
                     ...prev,
@@ -453,24 +464,64 @@ showGoogleReviewInsights=false}) => {
 
 
 
+    // const getInsightsDirectly = async () => {
+    //     try {
+    //         const getUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
+    //         const getResp = await axios.get(getUrl);
+    //         return getResp.data;
+    //     } catch (err) {
+    //         if (err.response && err.response.status === 404) {
+    //             const postUrl = `http://52.3.145.159:8080/api/v1/insights/generate/${businessId}`;
+    //             await axios.post(postUrl);
+    //             const finalUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
+    //             const finalGet = await axios.get(finalUrl);
+    //             return finalGet.data;
+    //         } else {
+    //             console.error("Could not fetch or generate insights:", err);
+    //             return null;
+    //         }
+    //     }
+    // };
+
+
     const getInsightsDirectly = async () => {
         try {
-            const getUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
-            const getResp = await axios.get(getUrl);
-            return getResp.data;
-        } catch (err) {
-            if (err.response && err.response.status === 404) {
-                const postUrl = `http://52.3.145.159:8080/api/v1/insights/generate/${businessId}`;
-                await axios.post(postUrl);
-                const finalUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
-                const finalGet = await axios.get(finalUrl);
-                return finalGet.data;
-            } else {
-                console.error("Could not fetch or generate insights:", err);
-                return null;
+            // Fetch or Generate Google Insights
+            let googleInsights;
+            try {
+                googleInsights = await axios.get(`http://52.3.145.159:8080/api/v1/insights/${businessId}`);
+            } catch (err) {
+                if (err.response && err.response.status === 404) {
+                    await axios.post(`http://52.3.145.159:8080/api/v1/insights/generate/${businessId}`);
+                    googleInsights = await axios.get(`http://52.3.145.159:8080/api/v1/insights/${businessId}`);
+                } else {
+                    throw err;
+                }
             }
+
+            // Fetch or Generate Facebook Insights
+            let facebookInsights;
+            try {
+                facebookInsights = await axios.get(`http://52.3.145.159:8080/api/v1/facebook-insights/${businessId}`);
+            } catch (err) {
+                if (err.response && err.response.status === 404) {
+                    await axios.post(`http://52.3.145.159:8080/api/v1/facebook-insights/generate/${businessId}`);
+                    facebookInsights = await axios.get(`http://52.3.145.159:8080/api/v1/facebook-insights/${businessId}`);
+                } else {
+                    throw err;
+                }
+            }
+
+            return {
+                google: googleInsights.data,
+                facebook: facebookInsights.data
+            };
+        } catch (err) {
+            console.error("Could not fetch or generate insights:", err);
+            return null;
         }
     };
+
 
 
 
@@ -572,54 +623,6 @@ showGoogleReviewInsights=false}) => {
     };
 
 
-    // This is what happens when the user clicks "Show More"
-    // const handleShowMoreClick = async () => {
-    //     try {
-    //         // 1) Fetch the business_google_review_confirmation
-    //         const url = `http://52.3.145.159:8080/api/v1/review-confirmation/${businessId}`;
-    //         const response = await axios.get(url);
-    //         const confirmation = response.data; // { userResponse: "Y"|"N"|"Pending" }
-    //         setReviewConfirmation(confirmation);
-
-    //         if (!confirmation || confirmation.userResponse === "Pending") {
-    //             // Scenario 1: user never responded => we prompt them
-    //             const alertMessage = {
-    //                 sender: "bot",
-    //                 text: `Would you like to see your Google Reviews Analysis?\n\nPlease select YES or NO:`,
-    //             };
-    //             setChatMessages((prev) => [...prev, alertMessage]);
-    //             setShowChatbot(true);
-
-    //         } else if (confirmation.userResponse === "Y") {
-    //             // Scenario 2: user responded "Y" previously
-    //             // => fetch or generate insights automatically
-    //             await fetchOrGenerateInsights();
-
-    //             // Then prompt for the call campaign
-    //             promptForCallCampaign();
-
-    //             // Optionally show the chatbot so they see the insights
-    //             setShowChatbot(true);
-
-    //         } else if (confirmation.userResponse === "N") {
-    //             // They previously said "No"
-    //             // => do nothing, or show a small snack
-    //             setSnackMessage("You already opted out of Google Review analysis.");
-    //             setSnackSeverity("info");
-    //             setSnackOpen(true);
-    //         }
-    //     } catch (err) {
-    //         // Possibly 404 => create "Pending"
-    //         console.log("Review confirmation record not found, creating one...");
-    //         await createPendingConfirmation();
-    //         // Then show the prompt:
-    //         const alertMessage = {
-    //             sender: "bot",
-    //             text: `Would you like to see your Google Reviews Analysis?\n\nPlease select YES or NO:`,
-    //         };
-    //         setChatMessages((prev) => [...prev, alertMessage]);
-    //         setShowChatbot(true);
-    //     }
     // };
     const handleShowMoreClick = async () => {
         try {
@@ -1143,27 +1146,27 @@ showGoogleReviewInsights=false}) => {
 
             {/* ROW 2: LEFT = CALL HISTORY, RIGHT = CALENDAR + TABLE */}
             <Grid item xs={12} container spacing={3}>
-    {showCallHistory && (
-        <Grid item xs={12} md={5}>
-            <ExpandableCallHistory
-                businessId={businessId}
-                title="Call History"
-                subtitle="Track recent customer interactions"
-                defaultExpanded={true}
-            />
-        </Grid>
-    )}
+                {showCallHistory && (
+                    <Grid item xs={12} md={5}>
+                        <ExpandableCallHistory
+                            businessId={businessId}
+                            title="Call History"
+                            subtitle="Track recent customer interactions"
+                            defaultExpanded={true}
+                        />
+                    </Grid>
+                )}
 
-    {showAppointmentsCalendar && (
-        <Grid item xs={12} md={showCallHistory ? 7 : 12}>
-            <ExpandableCalendar
-                title="Appointments Calendar"
-                subtitle="View and manage your upcoming appointments"
-                defaultExpanded={true}
-            />
-        </Grid>
-    )}
-</Grid>
+                {showAppointmentsCalendar && (
+                    <Grid item xs={12} md={showCallHistory ? 7 : 12}>
+                        <ExpandableCalendar
+                            title="Appointments Calendar"
+                            subtitle="View and manage your upcoming appointments"
+                            defaultExpanded={true}
+                        />
+                    </Grid>
+                )}
+            </Grid>
 
 
             {/* DIALOG for new Appt */}
@@ -1545,10 +1548,16 @@ showGoogleReviewInsights=false}) => {
             </Dialog>
 
             {showGoogleReviewInsights && businessId && (
-  <Grid item xs={12}>
-    <GoogleReviewInsights businessId={businessId} />
-  </Grid>
-)}
+                <Grid item xs={12}>
+                    <GoogleReviewInsights businessId={businessId} />
+                </Grid>
+            )}
+
+            {showFacebookReviewInsights && businessId && (
+                <Grid item xs={12}>
+                    <FacebookReviewInsights businessId={businessId} />
+                </Grid>
+            )}
 
             {/* Chatbot Drawer */}
             {!isAdmin && (

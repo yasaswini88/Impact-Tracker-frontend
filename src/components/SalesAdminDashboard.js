@@ -22,6 +22,10 @@ import BusinessIcon from '@mui/icons-material/Business';
 import SearchIcon from '@mui/icons-material/Search';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import Dashboard from './Dashboard'; // Make sure Dashboard component is imported
+import SeasonalTrends from './SeasonalTrends';
+import FacebookReviewInsights from "./FacebookReviewInsights";
+import GlobalSeasonalTrends from './GlobalSeasonalTrends';
+
 
 const COLOR = {
     primary: '#f1ced4',
@@ -99,7 +103,7 @@ const SalesAdminDashboard = () => {
     const handleCardClick = (business) => {
         localStorage.setItem("businessUser", JSON.stringify(business));
         setSelectedBusiness(business);
-        setTimeout(() => setOpenDialog(true), 100); 
+        setTimeout(() => setOpenDialog(true), 100);
         setOpenDialog(true);
     };
 
@@ -181,36 +185,32 @@ const SalesAdminDashboard = () => {
                     </Grid>
                 )}
 
-                {/* <Dialog
-          open={openDialog}
-          onClose={() => setOpenDialog(false)}
-          fullWidth
-          maxWidth="xl"
-        >
-          <DialogTitle>Business Dashboard</DialogTitle>
-          <DialogContent>
-            {selectedBusiness && <Dashboard />}
-          </DialogContent>
-        </Dialog> */}
+           
 
-                <Dialog
-                    open={openDialog}
-                    onClose={() => setOpenDialog(false)}
-                    fullWidth
-                    maxWidth="xl"
-                >
+                <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="xl">
                     <DialogTitle>Business Dashboard</DialogTitle>
                     <DialogContent>
                         {selectedBusiness && (
-                            <Dashboard
-                                showAiInsights={false}
-                                showCallHistory={false}
-                                showAppointmentsCalendar={false}
-                                showGoogleReviewInsights={true}
-                            />
+                            <>
+                                <Dashboard
+                                    showAiInsights={false}
+                                    showCallHistory={false}
+                                    showAppointmentsCalendar={false}
+                                    showGoogleReviewInsights={true}
+                                    showFacebookReviewInsights={true}
+                                    business={selectedBusiness}
+
+                                />
+
+                                
+                                <SeasonalTrends businessId={selectedBusiness.businessId} />
+
+
+                            </>
                         )}
                     </DialogContent>
                 </Dialog>
+
 
 
             </Paper>

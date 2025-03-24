@@ -25,6 +25,8 @@ import Dashboard from './Dashboard'; // Make sure Dashboard component is importe
 import SeasonalTrends from './SeasonalTrends';
 import FacebookReviewInsights from "./FacebookReviewInsights";
 import GlobalSeasonalTrends from './GlobalSeasonalTrends';
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+
 
 
 const COLOR = {
@@ -43,6 +45,15 @@ const SalesAdminDashboard = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedBusiness, setSelectedBusiness] = useState(null);
+
+    const [selectedBusinessType, setSelectedBusinessType] = useState('All');
+    const businessTypes = ['All', ...new Set(businesses.map(b => b.businessType))];
+
+
+    const [selectedSentiment, setSelectedSentiment] = useState('All');
+    const sentimentOptions = ['All', 'Positive', 'Negative', 'Neutral'];
+
+
 
     useEffect(() => {
         const fetchBusinesses = async () => {
@@ -66,6 +77,7 @@ const SalesAdminDashboard = () => {
                             return {
                                 ...business,
                                 weeklySentimentSummary: sentimentRes.data.trend_summary,
+                                overallSentiment: sentimentRes.data.overall_sentiment, // <-- Add this line
                                 callVolumeSummary: callVolumeTrendRes.data.call_volume_summary
                             };
                         } catch (err) {
@@ -74,6 +86,7 @@ const SalesAdminDashboard = () => {
                         }
                     })
                 );
+
 
                 setBusinesses(businessesWithInsights);
                 setFilteredBusinesses(businessesWithInsights);
@@ -87,18 +100,49 @@ const SalesAdminDashboard = () => {
         fetchBusinesses();
     }, []);
 
+
+
+    // useEffect(() => {
+    //     let filtered = businesses;
+
+    //     if (searchTerm.trim() !== '') {
+    //         filtered = filtered.filter(business =>
+    //             business.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    //             business.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    //             business.businessType.toLowerCase().includes(searchTerm.toLowerCase())
+    //         );
+    //     }
+
+    //     if (selectedBusinessType !== 'All') {
+    //         filtered = filtered.filter(business => business.businessType === selectedBusinessType);
+    //     }
+
+    //     setFilteredBusinesses(filtered);
+    // }, [searchTerm, businesses, selectedBusinessType]);
+
+
     useEffect(() => {
-        if (searchTerm.trim() === '') {
-            setFilteredBusinesses(businesses);
-        } else {
-            const filtered = businesses.filter(business =>
+        let filtered = businesses;
+
+        if (searchTerm.trim() !== '') {
+            filtered = filtered.filter(business =>
                 business.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 business.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 business.businessType.toLowerCase().includes(searchTerm.toLowerCase())
             );
-            setFilteredBusinesses(filtered);
         }
-    }, [searchTerm, businesses]);
+
+        if (selectedBusinessType !== 'All') {
+            filtered = filtered.filter(business => business.businessType === selectedBusinessType);
+        }
+
+        if (selectedSentiment !== 'All') {
+            filtered = filtered.filter(business => business.overallSentiment === selectedSentiment);
+        }
+
+        setFilteredBusinesses(filtered);
+    }, [searchTerm, businesses, selectedBusinessType, selectedSentiment]); // <- Added selectedSentiment here
+
 
     const handleCardClick = (business) => {
         localStorage.setItem("businessUser", JSON.stringify(business));
@@ -109,24 +153,109 @@ const SalesAdminDashboard = () => {
 
     return (
         <Container maxWidth="lg">
+
+            <Divider sx={{ my: 4 }} />
+
+
+            <GlobalSeasonalTrends />
+
+
             <Paper elevation={0} sx={{ mt: 4, p: 4, borderRadius: 2, border: `1px solid ${COLOR.border}` }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: COLOR.text }}>Sales Admin Dashboard</Typography>
-                    <TextField
-                        placeholder="Search businesses..."
-                        size="small"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        sx={{ width: '300px' }}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon sx={{ color: 'gray' }} />
-                                </InputAdornment>
-                            ),
-                        }}
-                    />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: COLOR.text }}>
+                        Sales Admin Dashboard
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <FormControl sx={{ width: '180px' }} size="small">
+                            <InputLabel id="business-type-filter-label">Business Type</InputLabel>
+                            <Select
+                                labelId="business-type-filter-label"
+                                label="Business Type"
+                                value={selectedBusinessType}
+                                onChange={(e) => setSelectedBusinessType(e.target.value)}
+                                sx={{
+                                    borderRadius: 1.5,
+                                    color: COLOR.text,
+                                    fontWeight: 'medium',
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: COLOR.border,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: COLOR.accent,
+                                    },
+                                }}
+                            >
+                                {businessTypes.map((type) => (
+                                    <MenuItem key={type} value={type}>
+                                        {type}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl sx={{ width: '180px' }} size="small">
+                            <InputLabel id="overall-sentiment-filter-label">Overall Sentiment</InputLabel>
+                            <Select
+                                labelId="overall-sentiment-filter-label"
+                                label="Overall Sentiment"
+                                value={selectedSentiment}
+                                onChange={(e) => setSelectedSentiment(e.target.value)}
+                                sx={{
+                                    borderRadius: 1.5,
+                                    color: COLOR.text,
+                                    fontWeight: 'medium',
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: COLOR.border,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: COLOR.accent,
+                                    },
+                                }}
+                            >
+                                {sentimentOptions.map((option) => (
+                                    <MenuItem key={option} value={option}>
+                                        {option}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+
+
+                        <TextField
+                            placeholder="Search businesses..."
+                            size="small"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            sx={{
+                                width: '300px',
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 1.5,
+                                    '& fieldset': {
+                                        borderColor: COLOR.border,
+                                    },
+                                    '&:hover fieldset': {
+                                        borderColor: COLOR.accent,
+                                    },
+                                    '&.Mui-focused fieldset': {
+                                        borderColor: COLOR.accent,
+                                    },
+                                },
+                            }}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <SearchIcon sx={{ color: COLOR.text }} />
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+
+                    </Box>
                 </Box>
+
+
 
                 {loading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, mb: 4 }}>
@@ -149,10 +278,18 @@ const SalesAdminDashboard = () => {
                                     }}
                                     onClick={() => handleCardClick(business)}
                                 >
-                                    <Box sx={{ p: 2, backgroundColor: COLOR.primary, display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <BusinessIcon sx={{ color: COLOR.text }} />
-                                        <Typography variant="h6" sx={{ color: COLOR.text, fontWeight: 'bold' }}>{business.businessName}</Typography>
+                                    <Box sx={{ p: 2, backgroundColor: COLOR.primary, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <BusinessIcon sx={{ color: COLOR.text }} />
+                                            <Typography variant="h6" sx={{ color: COLOR.text, fontWeight: 'bold' }}>
+                                                {business.businessName}
+                                            </Typography>
+                                        </Box>
+                                        <Typography variant="subtitle2" sx={{ color: COLOR.text, fontWeight: 'bold' }}>
+                                            {business.businessType.toUpperCase()}
+                                        </Typography>
                                     </Box>
+
 
                                     <CardContent sx={{ p: 3 }}>
                                         <Typography variant="body2"><strong>Email:</strong> {business.email}</Typography>
@@ -164,6 +301,20 @@ const SalesAdminDashboard = () => {
                                                 <strong>Weekly Sentiment:</strong> {business.weeklySentimentSummary}
                                             </Typography>
                                         )}
+
+                                        {business.overallSentiment && (
+                                            <Typography variant="body2" sx={{ mt: 1 }}>
+                                                <strong>Overall Sentiment:</strong>
+                                                <Box component="span" sx={{
+                                                    color: business.overallSentiment === "Positive" ? 'green' :
+                                                        business.overallSentiment === "Negative" ? 'red' : 'orange',
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    {business.overallSentiment}
+                                                </Box>
+                                            </Typography>
+                                        )}
+
                                         {business.callVolumeSummary && (
                                             <Typography variant="body2" sx={{ mt: 1 }}>
                                                 <strong>Call Volume:</strong> {business.callVolumeSummary}
@@ -185,7 +336,9 @@ const SalesAdminDashboard = () => {
                     </Grid>
                 )}
 
-           
+
+
+
 
                 <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="xl">
                     <DialogTitle>Business Dashboard</DialogTitle>
@@ -202,7 +355,7 @@ const SalesAdminDashboard = () => {
 
                                 />
 
-                                
+
                                 <SeasonalTrends businessId={selectedBusiness.businessId} />
 
 

@@ -25,7 +25,8 @@ const GlobalSeasonalTrends = () => {
             setLoading(true);
             try {
                 const res = await axios.get(`http://52.3.145.159:8080/api/v1/global-seasonal-trends/${selectedType}`);
-                setTrends(res.data);
+                setTrends(res.data.monthlyTrends);
+
             } catch (e) {
                 console.error(e);
                 setTrends(null);

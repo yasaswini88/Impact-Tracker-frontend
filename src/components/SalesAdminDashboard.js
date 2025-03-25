@@ -24,8 +24,13 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import Dashboard from './Dashboard'; // Make sure Dashboard component is imported
 import SeasonalTrends from './SeasonalTrends';
 import FacebookReviewInsights from "./FacebookReviewInsights";
+import GoogleReviewInsights from "./GoogleReviewInsights";
 import GlobalSeasonalTrends from './GlobalSeasonalTrends';
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import SentimentNeutralIcon from '@mui/icons-material/SentimentNeutral';
+import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt';
+import SentimentVeryDissatisfiedIcon from '@mui/icons-material/SentimentVeryDissatisfied';
+
 
 
 
@@ -154,17 +159,22 @@ const SalesAdminDashboard = () => {
     return (
         <Container maxWidth="lg">
 
-            <Divider sx={{ my: 4 }} />
+            {/* <Typography variant="h4" sx={{ fontWeight: 'bold', color: COLOR.text }}>
+                        Sales Admin Dashboard
+                    </Typography> */}
+
+            {/* <Divider sx={{ my: 4 }} /> */}
 
 
             <GlobalSeasonalTrends />
 
 
             <Paper elevation={0} sx={{ mt: 4, p: 4, borderRadius: 2, border: `1px solid ${COLOR.border}` }}>
+
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold', color: COLOR.text }}>
+                    {/* <Typography variant="h4" sx={{ fontWeight: 'bold', color: COLOR.text }}>
                         Sales Admin Dashboard
-                    </Typography>
+                    </Typography> */}
 
                     <Box sx={{ display: 'flex', gap: 2 }}>
                         <FormControl sx={{ width: '180px' }} size="small">
@@ -285,51 +295,126 @@ const SalesAdminDashboard = () => {
                                                 {business.businessName}
                                             </Typography>
                                         </Box>
-                                        <Typography variant="subtitle2" sx={{ color: COLOR.text, fontWeight: 'bold' }}>
-                                            {business.businessType.toUpperCase()}
-                                        </Typography>
+                                        <Typography
+    variant="subtitle2"
+    sx={{
+        color: COLOR.text,
+        fontWeight: 'bold',
+        backgroundColor: COLOR.light,
+        px: 1.5,
+        py: 0.5,
+        borderRadius: '12px',
+        display: 'inline-block',
+        border: `1px solid ${COLOR.border}`,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+    }}
+>
+    {business.businessType.toUpperCase()}
+</Typography>
                                     </Box>
 
 
-                                    <CardContent sx={{ p: 3 }}>
-                                        <Typography variant="body2"><strong>Email:</strong> {business.email}</Typography>
-                                        <Typography variant="body2"><strong>Type:</strong> {business.businessType}</Typography>
-                                        <Typography variant="body2"><strong>Phone:</strong> {business.phoneNumber}</Typography>
-
-                                        {business.weeklySentimentSummary && (
-                                            <Typography variant="body2" sx={{ mt: 1 }}>
-                                                <strong>Weekly Sentiment:</strong> {business.weeklySentimentSummary}
-                                            </Typography>
+                                    <CardContent sx={{ p: 3, textAlign: 'left', position: 'relative' }}>
+                                        {business.overallSentiment === "Negative" && (
+                                            <Box
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: '10px',
+                                                    right: '10px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    bgcolor: '#feeced',
+                                                    color: '#d32f2f',
+                                                    borderRadius: '16px',
+                                                    px: 1.5,
+                                                    py: 0.5,
+                                                    border: '1px solid #ef5350'
+                                                }}
+                                            >
+                                                <Box component="span" sx={{ mr: 0.5, display: 'flex', alignItems: 'center' }}>
+                                                    <Box
+                                                        component="span"
+                                                        sx={{
+                                                            width: 18,
+                                                            height: 18,
+                                                            borderRadius: '50%',
+                                                            bgcolor: '#d32f2f',
+                                                            color: 'white',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: '14px',
+                                                            fontWeight: 'bold',
+                                                            mr: 0.5
+                                                        }}
+                                                    >
+                                                        !
+                                                    </Box>
+                                                </Box>
+                                                NEEDS ATTENTION
+                                            </Box>
                                         )}
 
-                                        {business.overallSentiment && (
-                                            <Typography variant="body2" sx={{ mt: 1 }}>
+                                        <Box sx={{ mb: 1 }}>
+                                            <Typography variant="body2"><strong>Email:</strong> {business.email}</Typography>
+                                            <Typography variant="body2"><strong>Phone:</strong> {business.phoneNumber}</Typography>
+                                        </Box>
+
+                                        <Box sx={{ mb: 1 }}>
+                                            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                 <strong>Overall Sentiment:</strong>
-                                                <Box component="span" sx={{
-                                                    color: business.overallSentiment === "Positive" ? 'green' :
-                                                        business.overallSentiment === "Negative" ? 'red' : 'orange',
-                                                    fontWeight: 'bold'
-                                                }}>
-                                                    {business.overallSentiment}
-                                                </Box>
+                                                {business.overallSentiment === "Positive" && (
+                                                    <>
+                                                        <SentimentSatisfiedAltIcon sx={{ color: 'green' }} />
+                                                        <span style={{ fontWeight: 'bold', color: 'green' }}>Positive</span>
+                                                    </>
+                                                )}
+                                                {business.overallSentiment === "Negative" && (
+                                                    <>
+                                                        <SentimentVeryDissatisfiedIcon sx={{ color: 'red' }} />
+                                                        <span style={{ fontWeight: 'bold', color: 'red' }}>Negative</span>
+                                                    </>
+                                                )}
+                                                {business.overallSentiment === "Neutral" && (
+                                                    <>
+                                                        <SentimentNeutralIcon sx={{ color: 'orange' }} />
+                                                        <span style={{ fontWeight: 'bold', color: 'orange' }}>Neutral</span>
+                                                    </>
+                                                )}
                                             </Typography>
+                                        </Box>
+
+                                        {business.weeklySentimentSummary && (
+                                            <Box sx={{ mb: 1 }}>
+                                                <Typography variant="body2">
+                                                    <strong>Weekly Sentiment:</strong> {business.weeklySentimentSummary}
+                                                </Typography>
+                                            </Box>
                                         )}
 
                                         {business.callVolumeSummary && (
-                                            <Typography variant="body2" sx={{ mt: 1 }}>
-                                                <strong>Call Volume:</strong> {business.callVolumeSummary}
-                                            </Typography>
+                                            <Box>
+                                                <Typography variant="body2">
+                                                    <strong>Call Volume:</strong> {business.callVolumeSummary}
+                                                </Typography>
+                                            </Box>
                                         )}
 
                                         <Button
                                             variant="contained"
                                             fullWidth
                                             startIcon={<DashboardIcon />}
-                                            sx={{ mt: 3, backgroundColor: COLOR.primary, color: COLOR.text, '&:hover': { backgroundColor: COLOR.accent } }}
+                                            sx={{
+                                                mt: 3,
+                                                backgroundColor: COLOR.primary,
+                                                color: COLOR.text,
+                                                '&:hover': { backgroundColor: COLOR.accent }
+                                            }}
                                         >
                                             Open Dashboard
                                         </Button>
                                     </CardContent>
+
                                 </Card>
                             </Grid>
                         ))}
@@ -341,7 +426,7 @@ const SalesAdminDashboard = () => {
 
 
                 <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="xl">
-                    <DialogTitle>Business Dashboard</DialogTitle>
+                    {/* <DialogTitle>Business Dashboard</DialogTitle> */}
                     <DialogContent>
                         {selectedBusiness && (
                             <>
@@ -349,11 +434,24 @@ const SalesAdminDashboard = () => {
                                     showAiInsights={false}
                                     showCallHistory={false}
                                     showAppointmentsCalendar={false}
-                                    showGoogleReviewInsights={true}
-                                    showFacebookReviewInsights={true}
+                                    // showGoogleReviewInsights={true}
+                                    // showFacebookReviewInsights={true}
+                                    showBusinessInfo={true}
                                     business={selectedBusiness}
 
                                 />
+
+                                <Grid container spacing={2}>
+                                    <Grid item xs={12} md={6}>
+                                        <GoogleReviewInsights businessId={selectedBusiness.businessId} />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <FacebookReviewInsights businessId={selectedBusiness.businessId} />
+                                    </Grid>
+                                </Grid>
+
+
+
 
 
                                 <SeasonalTrends businessId={selectedBusiness.businessId} />

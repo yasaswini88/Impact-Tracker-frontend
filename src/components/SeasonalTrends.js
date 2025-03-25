@@ -28,7 +28,7 @@ const SeasonalTrends = ({ businessId }) => {
   const options = {
     chart: { type: 'line' },
     xaxis: { categories: Object.keys(trends) },
-    title: { text: 'Seasonal Trends' },
+    // title: { text: 'Seasonal Trends' },
   };
 
   const series = [{ name: 'Demand', data: Object.values(trends) }];

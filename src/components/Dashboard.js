@@ -80,6 +80,7 @@ const Dashboard = ({ showAiInsights = true, showCallHistory = true,
 
     showGoogleReviewInsights = false,
     showFacebookReviewInsights = false,
+    showBusinessInfo = false,
 }) => {
 
     // const businessId = business?.businessId;
@@ -985,6 +986,7 @@ const Dashboard = ({ showAiInsights = true, showCallHistory = true,
             <Grid item xs={12} container spacing={2}>
                 <Grid item xs={12} >
                     {/* BUSINESS INFO CARD */}
+                    {!showBusinessInfo && (businessId && (
                     <Card sx={{
                         ...cardStyle,
                         "& .MuiCardContent-root": { p: 3 },
@@ -1053,6 +1055,8 @@ const Dashboard = ({ showAiInsights = true, showCallHistory = true,
                             )}
                         </CardContent>
                     </Card>
+
+))}
 
 
 

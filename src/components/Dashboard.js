@@ -465,24 +465,7 @@ const Dashboard = ({ showAiInsights = true, showCallHistory = true,
 
 
 
-    // const getInsightsDirectly = async () => {
-    //     try {
-    //         const getUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
-    //         const getResp = await axios.get(getUrl);
-    //         return getResp.data;
-    //     } catch (err) {
-    //         if (err.response && err.response.status === 404) {
-    //             const postUrl = `http://52.3.145.159:8080/api/v1/insights/generate/${businessId}`;
-    //             await axios.post(postUrl);
-    //             const finalUrl = `http://52.3.145.159:8080/api/v1/insights/${businessId}`;
-    //             const finalGet = await axios.get(finalUrl);
-    //             return finalGet.data;
-    //         } else {
-    //             console.error("Could not fetch or generate insights:", err);
-    //             return null;
-    //         }
-    //     }
-    // };
+
 
 
     const getInsightsDirectly = async () => {
@@ -748,6 +731,8 @@ const Dashboard = ({ showAiInsights = true, showCallHistory = true,
     }, [businessId]);
 
     const [aITrendLoading, setAItrendLoading] = useState(false);
+
+
     useEffect(() => {
         // If you have businessId from localStorageß
         if (!businessId) {
@@ -755,30 +740,40 @@ const Dashboard = ({ showAiInsights = true, showCallHistory = true,
             return;
         }
 
-        async function fetchCallVolumeTrend() {
+        const fetchCallVolumeTrend = async () => {
+            setAItrendLoading(true);
             try {
-                setAItrendLoading(true);
-                await new Promise(res => setTimeout(res, 3000));
-                // Now the request body has only the arrays
-                const requestBody = {
-                    answered: [42, 109, 100, 31, 40, 28, 14],
-                    // missed: [11, 34, 52, 32, 12, 8, 2],
-                    // voicemail: [11, 32, 52, 41, 28, 32, 20],
-                    months: ["aug", "sep", "oct", "nov", "dec", "jan", "feb"],
-                };
-
-                // Notice the URL: /call-volume-trend/ + businessId
                 const response = await axios.post(
-                    `http://52.3.145.159:8080/api/v1/sentiment-analyses/call-volume-trend/${businessId}`,
-                    requestBody
+                    `http://52.3.145.159:8080/api/v1/sentiment-analyses/call-volume-trend/${businessId}`
                 );
 
-                setCallVolumeTrend(response.data);
-                setAItrendLoading(false);
+                const data = response.data;
+
+                // Update chart data dynamically
+                setCallVolume({
+                    series: [
+                        { name: "Answered", data: data.answered },
+                        { name: "Missed", data: data.missed },
+                        { name: "Voicemail", data: data.voicemail },
+                    ],
+                    options: {
+                        ...callVolume.options,
+                        xaxis: {
+                            categories: data.months,
+                            title: { text: "Last 6 Months" },
+                        },
+                    },
+                });
+
+                // Store AI-generated summary separately (if you need it elsewhere)
+                setCallVolumeTrend(data.call_volume_summary);
+
             } catch (err) {
-                console.error("Could not fetch call volume trend:", err);
+                console.error("Error fetching call volume trend:", err);
+            } finally {
+                setAItrendLoading(false);
             }
-        }
+        };
 
         fetchCallVolumeTrend();
     }, [businessId]);
@@ -987,76 +982,76 @@ const Dashboard = ({ showAiInsights = true, showCallHistory = true,
                 <Grid item xs={12} >
                     {/* BUSINESS INFO CARD */}
                     {!showBusinessInfo && (businessId && (
-                    <Card sx={{
-                        ...cardStyle,
-                        "& .MuiCardContent-root": { p: 3 },
-                        border: '1px solid rgba(255, 77, 109, 0.2)',  // Light pink border
-                        borderRadius: 2,
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                        '&:hover': {
-                            borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover
-                            transition: 'border-color 0.3s ease'
-                        }
-                    }}>
-                        <CardContent>
-                            {businessInfo ? (
-                                <Grid container spacing={2}>
-                                    <Grid item xs={12} md={4}>
-                                        <Box sx={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            gap: 1
-                                        }}>
-                                            <BusinessIcon sx={{ fontSize: 40, color: "#ff4d6d" }} />
-                                            <Typography variant="h6" sx={{
-                                                fontWeight: "medium",
-                                                textAlign: 'center'
+                        <Card sx={{
+                            ...cardStyle,
+                            "& .MuiCardContent-root": { p: 3 },
+                            border: '1px solid rgba(255, 77, 109, 0.2)',  // Light pink border
+                            borderRadius: 2,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                            '&:hover': {
+                                borderColor: 'rgba(255, 77, 109, 0.3)',  // Slightly darker on hover
+                                transition: 'border-color 0.3s ease'
+                            }
+                        }}>
+                            <CardContent>
+                                {businessInfo ? (
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={12} md={4}>
+                                            <Box sx={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                gap: 1
                                             }}>
-                                                <strong>{businessInfo.businessName}</strong>
-                                            </Typography>
-                                        </Box>
-                                    </Grid>
-                                    <Grid item xs={12} md={4}>
-                                        <Box sx={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            gap: 1
-                                        }}>
-                                            <AccessTimeIcon sx={{ fontSize: 40, color: "#ff4d6d" }} />
-                                            <Typography variant="h6" sx={{
-                                                fontWeight: "medium",
-                                                textAlign: 'center'
+                                                <BusinessIcon sx={{ fontSize: 40, color: "#ff4d6d" }} />
+                                                <Typography variant="h6" sx={{
+                                                    fontWeight: "medium",
+                                                    textAlign: 'center'
+                                                }}>
+                                                    <strong>{businessInfo.businessName}</strong>
+                                                </Typography>
+                                            </Box>
+                                        </Grid>
+                                        <Grid item xs={12} md={4}>
+                                            <Box sx={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                gap: 1
                                             }}>
-                                                <strong>Opening:</strong> {convertTo12Hour(businessInfo.openingTime)}
-                                            </Typography>
-                                        </Box>
-                                    </Grid>
-                                    <Grid item xs={12} md={4}>
-                                        <Box sx={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            alignItems: 'center',
-                                            gap: 1
-                                        }}>
-                                            <AccessTimeIcon sx={{ fontSize: 40, color: "#ff4d6d" }} />
-                                            <Typography variant="h6" sx={{
-                                                fontWeight: "medium",
-                                                textAlign: 'center'
+                                                <AccessTimeIcon sx={{ fontSize: 40, color: "#ff4d6d" }} />
+                                                <Typography variant="h6" sx={{
+                                                    fontWeight: "medium",
+                                                    textAlign: 'center'
+                                                }}>
+                                                    <strong>Opening:</strong> {convertTo12Hour(businessInfo.openingTime)}
+                                                </Typography>
+                                            </Box>
+                                        </Grid>
+                                        <Grid item xs={12} md={4}>
+                                            <Box sx={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                gap: 1
                                             }}>
-                                                <strong>Closing:</strong> {convertTo12Hour(businessInfo.closingTime)}
-                                            </Typography>
-                                        </Box>
+                                                <AccessTimeIcon sx={{ fontSize: 40, color: "#ff4d6d" }} />
+                                                <Typography variant="h6" sx={{
+                                                    fontWeight: "medium",
+                                                    textAlign: 'center'
+                                                }}>
+                                                    <strong>Closing:</strong> {convertTo12Hour(businessInfo.closingTime)}
+                                                </Typography>
+                                            </Box>
+                                        </Grid>
                                     </Grid>
-                                </Grid>
-                            ) : (
-                                <Typography>Loading business info...</Typography>
-                            )}
-                        </CardContent>
-                    </Card>
+                                ) : (
+                                    <Typography>Loading business info...</Typography>
+                                )}
+                            </CardContent>
+                        </Card>
 
-))}
+                    ))}
 
 
 
@@ -1564,7 +1559,7 @@ const Dashboard = ({ showAiInsights = true, showCallHistory = true,
             )}
 
             {/* Chatbot Drawer */}
-            {!isAdmin && (
+            {/* {!isAdmin && (
                 <Chatbot
                     showChatbot={showChatbot}
                     toggleChatbot={toggleChatbot}
@@ -1581,7 +1576,7 @@ const Dashboard = ({ showAiInsights = true, showCallHistory = true,
                     handleCallCampaignNo={handleCallCampaignNo}
                     callCampaignStrategies={callCampaignStrategies}
                 />
-            )}
+            )} */}
 
             {/* Snackbar */}
             <Snackbar

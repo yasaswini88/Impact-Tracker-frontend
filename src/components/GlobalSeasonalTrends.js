@@ -153,19 +153,18 @@ const GlobalSeasonalTrends = () => {
 
     return (
         <Paper elevation={0} sx={{ 
-            mt: 4, 
-            p: 4, 
+            mt: 2, 
+            p: 2, 
             borderRadius: 2, 
             border: `1px solid ${COLOR.border}`,
             backgroundColor: 'white'
         }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', color: COLOR.text }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb:0 , p:0}}>
+                {/* <Typography variant="h6" sx={{ fontWeight: 'bold', color: COLOR.text }}>
                     Global Seasonal Trends
-                </Typography>
-            </Box>
-
-            <FormControl fullWidth sx={{ mt: 2, mb: 4 }}>
+                </Typography> */}
+                <FormControl  sx={{ mt: 2, mb: 4, alignItems:'center', alignContent:'baseline' }}
+                >
                 <InputLabel id="business-type-select-label">Select Business Type</InputLabel>
                 <Select
                     labelId="business-type-select-label"
@@ -192,6 +191,9 @@ const GlobalSeasonalTrends = () => {
                     ))}
                 </Select>
             </FormControl>
+            </Box>
+
+          
 
             {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', my: 6 }}>
@@ -199,12 +201,13 @@ const GlobalSeasonalTrends = () => {
                 </Box>
             ) : (
                 trends ? (
-                    <Box sx={{ mt: 2, mb: 2 }}>
+                    <Box sx={{ mt: 0, mb: 0,p:0 }}>
                         <ReactApexChart 
                             options={options} 
                             series={series} 
                             type="line" 
-                            height={400} 
+                            height={300}
+                            //width={500}
                         />
                     </Box>
                 ) : (

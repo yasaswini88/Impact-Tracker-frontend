@@ -1,0 +1,328 @@
+import React, { useEffect, useState } from 'react';
+import { 
+  Card, 
+  CardContent, 
+  Typography, 
+  Box, 
+  CircularProgress, 
+  Divider,
+  Paper,
+  Chip,
+  Rating,
+  LinearProgress,
+  Grid,
+  Avatar
+} from '@mui/material';
+import axios from 'axios';
+import GoogleIcon from '@mui/icons-material/Google';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt';
+import SentimentVeryDissatisfiedIcon from '@mui/icons-material/SentimentVeryDissatisfied';
+import StarIcon from '@mui/icons-material/Star';
+
+// Color constants to match your theme
+const COLOR = {
+  primary: "#FFCC80",
+  secondary: '#e6c0c7',
+  accent: '#d3a9b0',
+  light: '#f8eaed',
+  border: 'rgba(241, 206, 212, 0.5)',
+  text: '#806368',
+  google: {
+    primary: '#4285F4',
+    light: '#e8f0fe',
+    border: 'rgba(66, 133, 244, 0.3)'
+  }
+};
+
+const GoogleReviewInsights = ({ businessId }) => {
+    const [insights, setInsights] = useState(null);
+    const [loading, setLoading] = useState(false);
+    // Mock data for ratings distribution - in a real app, this would come from your API
+    const [ratingsDistribution, setRatingsDistribution] = useState({
+        5: 65,
+        4: 20,
+        3: 10,
+        2: 3,
+        1: 2
+    });
+    const [overallRating, setOverallRating] = useState(4.4);
+
+    const fetchInsights = async () => {
+        try {
+            setLoading(true);
+            const res = await axios.get(`http://52.3.145.159:8080/api/v1/review-insights/${businessId}`);
+            
+            // Generate mock data for visual elements based on insights
+            // In production, you would ideally get this data from your API
+            if (res.data) {
+                // Analyze sentiment in the insights to determine a mock overall rating
+                const positiveText = res.data.insights.positive.toLowerCase();
+                const negativeText = res.data.insights.negative.toLowerCase();
+                
+                // Very basic sentiment analysis - just for demo purposes
+                const positiveWords = ["appreciated", "good", "great", "excellent", "love", "thorough", "efficient"];
+                const negativeWords = ["bad", "poor", "issue", "problem", "dissatisfied", "disappointed"];
+                
+                let positiveCount = positiveWords.filter(word => positiveText.includes(word)).length;
+                let negativeCount = negativeWords.filter(word => negativeText.includes(word)).length;
+                
+                // Adjust mock rating based on sentiment analysis
+                let mockRating = 3.5; // default
+                if (positiveCount > negativeCount) {
+                    mockRating = 4 + (Math.min(positiveCount, 5) / 10);
+                } else if (negativeCount > positiveCount) {
+                    mockRating = 3 - (Math.min(negativeCount, 5) / 10);
+                }
+                
+                setOverallRating(parseFloat(mockRating.toFixed(1)));
+                
+                // Generate mock distribution based on the overall rating
+                const mockDistribution = {
+                    5: Math.round(mockRating > 4 ? 50 + (mockRating - 4) * 20 : 30),
+                    4: Math.round(mockRating > 4 ? 30 : mockRating > 3 ? 40 : 25),
+                    3: Math.round(mockRating > 4 ? 15 : mockRating > 3 ? 20 : 30),
+                    2: Math.round(mockRating > 4 ? 3 : mockRating > 3 ? 7 : 10),
+                    1: Math.round(mockRating > 4 ? 2 : mockRating > 3 ? 3 : 5)
+                };
+                
+                setRatingsDistribution(mockDistribution);
+            }
+            
+            setInsights(res.data);
+        } catch (err) {
+            console.error("Error fetching Google review insights:", err);
+            setInsights(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (businessId) {
+            fetchInsights();
+        }
+    }, [businessId]);
+
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <CircularProgress sx={{ color: COLOR.google.primary }} />
+            </Box>
+        );
+    }
+
+    if (!insights) {
+        return (
+            <Card sx={{ mt: 4, borderRadius: 2, border: `1px solid ${COLOR.google.border}`, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', height: '100%' }}>
+                <CardContent sx={{ height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Typography sx={{ textAlign: 'center', py: 4, color: COLOR.text }}>
+                        No Google review insights available for this business.
+                    </Typography>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    // Extract key phrases from positive and negative points
+    const extractKeyPhrases = (text) => {
+        // For a real app, you'd use NLP to extract true key phrases
+        // This is a simple implementation for demo purposes
+        const sentences = text.split('.');
+        return sentences
+            .filter(s => s.trim().length > 10 && s.trim().length < 100)
+            .map(s => s.trim())
+            .slice(0, 3);
+    };
+
+    const positiveKeyPhrases = extractKeyPhrases(insights.insights.positive);
+    const negativeKeyPhrases = extractKeyPhrases(insights.insights.negative);
+
+    return (
+        <Card sx={{ 
+            mt: 4, 
+            borderRadius: 2, 
+            border: `1px solid ${COLOR.google.border}`, 
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column'
+        }}>
+            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1.5, 
+                    mb: 3,
+                    pb: 2,
+                    borderBottom: `1px solid ${COLOR.google.border}`
+                }}>
+                    <Avatar sx={{ bgcolor: COLOR.google.primary }}>
+                        <GoogleIcon sx={{ color: 'white' }} />
+                    </Avatar>
+                    <Typography variant="h5" sx={{ fontWeight: 'bold', color: COLOR.google.primary }}>
+                        Google Review Insights
+                    </Typography>
+                </Box>
+
+                <Grid container spacing={3}>
+                    {/* Left Column: Ratings Overview */}
+                    <Grid item xs={12} md={4}>
+                        <Box sx={{ 
+                            textAlign: 'center', 
+                            p: 2, 
+                            backgroundColor: COLOR.google.light,
+                            borderRadius: 2,
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+                            <Typography variant="h3" sx={{ fontWeight: 'bold', color: COLOR.google.primary, mb: 1 }}>
+                                {overallRating}
+                            </Typography>
+                            <Rating 
+                                value={overallRating} 
+                                precision={0.1} 
+                                readOnly 
+                                sx={{ mb: 2 }}
+                                emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                            />
+                            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+                                Based on customer reviews
+                            </Typography>
+                            
+                            {/* Ratings distribution */}
+                            <Box sx={{ width: '100%', mt: 1 }}>
+                                {[5, 4, 3, 2, 1].map((star) => (
+                                    <Box key={star} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                        <Typography sx={{ minWidth: '30px', color: 'text.secondary' }}>
+                                            {star}
+                                        </Typography>
+                                        <LinearProgress 
+                                            variant="determinate" 
+                                            value={ratingsDistribution[star]} 
+                                            sx={{ 
+                                                mx: 1, 
+                                                flexGrow: 1, 
+                                                height: 8, 
+                                                borderRadius: 1,
+                                                backgroundColor: 'rgba(0,0,0,0.1)',
+                                                '& .MuiLinearProgress-bar': {
+                                                    backgroundColor: COLOR.google.primary
+                                                }
+                                            }} 
+                                        />
+                                        <Typography sx={{ minWidth: '35px', color: 'text.secondary' }}>
+                                            {ratingsDistribution[star]}%
+                                        </Typography>
+                                    </Box>
+                                ))}
+                            </Box>
+                        </Box>
+                    </Grid>
+
+                    {/* Right Column: Insights */}
+                    <Grid item xs={12} md={8}>
+                        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            {/* Positive Points */}
+                            <Paper elevation={0} sx={{ 
+                                p: 2, 
+                                mb: 2, 
+                                backgroundColor: 'rgba(76, 175, 80, 0.08)', 
+                                borderRadius: 2,
+                                border: '1px solid rgba(76, 175, 80, 0.3)'
+                            }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                                    <ThumbUpIcon sx={{ color: 'success.main', mr: 1 }} />
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.dark' }}>
+                                        Positive Highlights
+                                    </Typography>
+                                </Box>
+                                
+                                <Typography sx={{ mb: 1.5, color: 'text.secondary' }}>
+                                    {insights.insights.positive}
+                                </Typography>
+                                
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+                                    {positiveKeyPhrases.map((phrase, index) => (
+                                        <Chip 
+                                            key={index}
+                                            icon={<SentimentSatisfiedAltIcon />} 
+                                            label={phrase}
+                                            size="small"
+                                            sx={{ 
+                                                backgroundColor: 'rgba(76, 175, 80, 0.15)', 
+                                                borderColor: 'rgba(76, 175, 80, 0.3)',
+                                                '& .MuiChip-icon': { color: 'success.main' }
+                                            }} 
+                                        />
+                                    ))}
+                                </Box>
+                            </Paper>
+                            
+                            {/* Negative Points */}
+                            <Paper elevation={0} sx={{ 
+                                p: 2, 
+                                mb: 2,
+                                backgroundColor: 'rgba(244, 67, 54, 0.08)', 
+                                borderRadius: 2,
+                                border: '1px solid rgba(244, 67, 54, 0.3)'
+                            }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                                    <ThumbDownIcon sx={{ color: 'error.main', mr: 1 }} />
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'error.dark' }}>
+                                        Areas for Improvement
+                                    </Typography>
+                                </Box>
+                                
+                                <Typography sx={{ mb: 1.5, color: 'text.secondary' }}>
+                                    {insights.insights.negative}
+                                </Typography>
+                                
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+                                    {negativeKeyPhrases.map((phrase, index) => (
+                                        <Chip 
+                                            key={index}
+                                            icon={<SentimentVeryDissatisfiedIcon />} 
+                                            label={phrase}
+                                            size="small"
+                                            sx={{ 
+                                                backgroundColor: 'rgba(244, 67, 54, 0.15)', 
+                                                borderColor: 'rgba(244, 67, 54, 0.3)',
+                                                '& .MuiChip-icon': { color: 'error.main' }
+                                            }} 
+                                        />
+                                    ))}
+                                </Box>
+                            </Paper>
+                            
+                            {/* Overall Summary */}
+                            <Paper elevation={0} sx={{ 
+                                p: 2,
+                                borderRadius: 2,
+                                border: `1px solid ${COLOR.google.border}`,
+                                backgroundColor: COLOR.google.light,
+                                flexGrow: 1,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center'
+                            }}>
+                                <Typography variant="h6" sx={{ fontWeight: 'bold', color: COLOR.google.primary, mb: 1.5 }}>
+                                    Summary
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontStyle: 'italic', color: 'text.primary' }}>
+                                    "{insights.insights.overall_summary}"
+                                </Typography>
+                            </Paper>
+                        </Box>
+                    </Grid>
+                </Grid>
+            </CardContent>
+        </Card>
+    );
+};
+
+export default GoogleReviewInsights;

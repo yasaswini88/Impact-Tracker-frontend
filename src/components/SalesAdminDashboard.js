@@ -39,6 +39,7 @@ import LaunchIcon from '@mui/icons-material/Launch';
 import EmailIcon from '@mui/icons-material/Email';
 import { Email } from '@mui/icons-material';
 import ReactApexChart from 'react-apexcharts';
+import ComparingCallVolume from './ComparingCallVolume';
 
 
 import PhoneIcon from '@mui/icons-material/Phone';
@@ -143,12 +144,8 @@ const SalesAdminDashboard = () => {
                                 `http://52.3.145.159:8080/api/v1/sentiment-analyses/weekly-trend/${business.businessId}`
                             );
 
-                            const callVolumeTrendRes = await axios.post(
-                                `http://52.3.145.159:8080/api/v1/sentiment-analyses/call-volume-trend/${business.businessId}`,
-                                {
-                                    answered: [42, 109, 100, 31, 40, 28, 14],
-                                    months: ["aug", "sep", "oct", "nov", "dec", "jan", "feb"]
-                                }
+                            const callVolumeTrendRes = await axios.get(
+                                `http://52.3.145.159:8080/api/v1/sentiment-analyses/call-volume-trend/${business.businessId}`
                             );
 
                             return {
@@ -252,19 +249,19 @@ const SalesAdminDashboard = () => {
 
                         {/* Chart section */}
                         {filteredBusinesses && filteredBusinesses.length > 0 && groupedAndCounted && Object.keys(groupedAndCounted).length > 0 ? (
-                          <ReactApexChart
-                          options={{
-                              labels: Object.keys(groupedAndCounted),
-                              chart: { toolbar: { show: false } },
-                              legend: { position: "bottom" },
-                              dataLabels: { style: { fontSize: '12px' } },
-                              colors: ['#F44336','#4CAF50',  '#FFC107'] // Positive (green), Negative (red), Neutral (yellow)
-                          }}
-                          series={Object.values(groupedAndCounted)}
-                          type="pie"
-                          height={300}
-                      />
-                      
+                            <ReactApexChart
+                                options={{
+                                    labels: Object.keys(groupedAndCounted),
+                                    chart: { toolbar: { show: false } },
+                                    legend: { position: "bottom" },
+                                    dataLabels: { style: { fontSize: '12px' } },
+                                    colors: ['#F44336', '#4CAF50', '#FFC107'] // Positive (green), Negative (red), Neutral (yellow)
+                                }}
+                                series={Object.values(groupedAndCounted)}
+                                type="pie"
+                                height={300}
+                            />
+
                         ) : (
                             <Typography
                                 variant="body2"
@@ -664,106 +661,106 @@ const SalesAdminDashboard = () => {
 
 
                                     <CardContent sx={{ p: 3, textAlign: 'left', position: 'relative' }}>
-    {business.overallSentiment === "Negative" && (
-        <Box
-            sx={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                bgcolor: '#feeced',
-                color: '#d32f2f',
-                borderRadius: '16px',
-                px: 1.5,
-                py: 0.5,
-                border: '1px solid #ef5350'
-            }}
-        >
-            <Box component="span" sx={{ mr: 0.5, display: 'flex', alignItems: 'center' }}>
-                <Box
-                    component="span"
-                    sx={{
-                        width: 15,
-                        height: 15,
-                        borderRadius: '50%',
-                        bgcolor: '#d32f2f',
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '10px',
-                        fontWeight: 'bold',
-                        mr: 0.5
-                    }}
-                >
-                    !
-                </Box>
-            </Box>
-            NEEDS ATTENTION
-        </Box>
-    )}
+                                        {business.overallSentiment === "Negative" && (
+                                            <Box
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: '10px',
+                                                    right: '10px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    bgcolor: '#feeced',
+                                                    color: '#d32f2f',
+                                                    borderRadius: '16px',
+                                                    px: 1.5,
+                                                    py: 0.5,
+                                                    border: '1px solid #ef5350'
+                                                }}
+                                            >
+                                                <Box component="span" sx={{ mr: 0.5, display: 'flex', alignItems: 'center' }}>
+                                                    <Box
+                                                        component="span"
+                                                        sx={{
+                                                            width: 15,
+                                                            height: 15,
+                                                            borderRadius: '50%',
+                                                            bgcolor: '#d32f2f',
+                                                            color: 'white',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: '10px',
+                                                            fontWeight: 'bold',
+                                                            mr: 0.5
+                                                        }}
+                                                    >
+                                                        !
+                                                    </Box>
+                                                </Box>
+                                                NEEDS ATTENTION
+                                            </Box>
+                                        )}
 
-    <Box sx={{ mb: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-            <EmailIcon sx={{ color: COLOR.text, fontSize: 18, mr: 1 }} />
-            <Typography variant="body2"><strong>Email:</strong> {business.email}</Typography>
-        </Box>
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-            <PhoneIcon sx={{ color: COLOR.text, fontSize: 18, mr: 1 }} />
-            <Typography variant="body2"><strong>Phone:</strong> {business.phoneNumber}</Typography>
-        </Box>
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-            <AccountBoxIcon sx={{ color: COLOR.text, fontSize: 18, mr: 1 }} />
-            <Typography variant="body2"><strong>Account Number:</strong> {business.registrationNumber}</Typography>
-        </Box>
+                                        <Box sx={{ mb: 1 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                                <EmailIcon sx={{ color: COLOR.text, fontSize: 18, mr: 1 }} />
+                                                <Typography variant="body2"><strong>Email:</strong> {business.email}</Typography>
+                                            </Box>
 
-        {business.weeklySentimentSummary && (
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                <TrendingUpIcon sx={{ color: COLOR.text, fontSize: 18, mr: 1 }} />
-                <Typography variant="body2">
-                    <strong>Weekly Sentiment:</strong> {business.weeklySentimentSummary}
-                </Typography>
-            </Box>
-        )}
+                                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                                <PhoneIcon sx={{ color: COLOR.text, fontSize: 18, mr: 1 }} />
+                                                <Typography variant="body2"><strong>Phone:</strong> {business.phoneNumber}</Typography>
+                                            </Box>
 
-        {business.callVolumeSummary && (
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                <CallIcon sx={{ color: COLOR.text, fontSize: 18, mr: 1 }} />
-                <Typography variant="body2">
-                    <strong>Call Volume:</strong> {business.callVolumeSummary}
-                </Typography>
-            </Box>
-        )}
-        
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-            <AnalyticsIcon sx={{ color: COLOR.text, fontSize: 18, mr: 1 }} />
-            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <strong>Overall Sentiment:</strong>
-                {business.overallSentiment === "Positive" && (
-                    <>
-                        <SentimentSatisfiedAltIcon sx={{ color: 'green' }} />
-                        <span style={{ fontWeight: 'bold', color: 'green' }}>Positive</span>
-                    </>
-                )}
-                {business.overallSentiment === "Negative" && (
-                    <>
-                        <SentimentVeryDissatisfiedIcon sx={{ color: 'red' }} />
-                        <span style={{ fontWeight: 'bold', color: 'red' }}>Negative</span>
-                    </>
-                )}
-                {business.overallSentiment === "Neutral" && (
-                    <>
-                        <SentimentNeutralIcon sx={{ color: 'orange' }} />
-                        <span style={{ fontWeight: 'bold', color: 'orange' }}>Neutral</span>
-                    </>
-                )}
-            </Typography>
-        </Box>
-    </Box>
-</CardContent>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                                <AccountBoxIcon sx={{ color: COLOR.text, fontSize: 18, mr: 1 }} />
+                                                <Typography variant="body2"><strong>Account Number:</strong> {business.registrationNumber}</Typography>
+                                            </Box>
+
+                                            {business.weeklySentimentSummary && (
+                                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                                    <TrendingUpIcon sx={{ color: COLOR.text, fontSize: 18, mr: 1 }} />
+                                                    <Typography variant="body2">
+                                                        <strong>Weekly Sentiment:</strong> {business.weeklySentimentSummary}
+                                                    </Typography>
+                                                </Box>
+                                            )}
+
+                                            {business.callVolumeSummary && (
+                                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                                    <CallIcon sx={{ color: COLOR.text, fontSize: 18, mr: 1 }} />
+                                                    <Typography variant="body2">
+                                                        <strong>Call Volume:</strong> {business.callVolumeSummary}
+                                                    </Typography>
+                                                </Box>
+                                            )}
+
+                                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                                                <AnalyticsIcon sx={{ color: COLOR.text, fontSize: 18, mr: 1 }} />
+                                                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <strong>Overall Sentiment:</strong>
+                                                    {business.overallSentiment === "Positive" && (
+                                                        <>
+                                                            <SentimentSatisfiedAltIcon sx={{ color: 'green' }} />
+                                                            <span style={{ fontWeight: 'bold', color: 'green' }}>Positive</span>
+                                                        </>
+                                                    )}
+                                                    {business.overallSentiment === "Negative" && (
+                                                        <>
+                                                            <SentimentVeryDissatisfiedIcon sx={{ color: 'red' }} />
+                                                            <span style={{ fontWeight: 'bold', color: 'red' }}>Negative</span>
+                                                        </>
+                                                    )}
+                                                    {business.overallSentiment === "Neutral" && (
+                                                        <>
+                                                            <SentimentNeutralIcon sx={{ color: 'orange' }} />
+                                                            <span style={{ fontWeight: 'bold', color: 'orange' }}>Neutral</span>
+                                                        </>
+                                                    )}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    </CardContent>
 
                                 </Card>
                             </Grid>
@@ -797,7 +794,17 @@ const SalesAdminDashboard = () => {
 
 
 
-                                <SeasonalTrends businessId={selectedBusiness.businessId} />
+                                <Box sx={{ my: 8 }}> {/* Adds vertical margin for spacing */}
+                                    <SeasonalTrends businessId={selectedBusiness.businessId} />
+                                </Box>
+
+
+                                <Grid item xs={12} md={6}>
+                                    {selectedBusiness && (
+                                        <ComparingCallVolume businessId={selectedBusiness.businessId} />
+                                    )}
+                                </Grid>
+
 
                                 <Dashboard
                                     showAiInsights={false}
@@ -809,11 +816,6 @@ const SalesAdminDashboard = () => {
                                     business={selectedBusiness}
 
                                 />
-
-
-
-
-
                             </>
                         )}
                     </DialogContent>
@@ -827,3 +829,5 @@ const SalesAdminDashboard = () => {
 };
 
 export default SalesAdminDashboard;
+
+

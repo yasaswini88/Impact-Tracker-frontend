@@ -12,8 +12,13 @@ import {
     Paper,
     Container,
     Divider,
+    Button,
+    ButtonGroup,
+    useTheme,
+    useMediaQuery
 } from '@mui/material';
 import ReactApexChart from 'react-apexcharts';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
 const COLOR = {
     primary: '#f1ced4',
@@ -29,6 +34,9 @@ const GlobalSeasonalTrends = () => {
     const [selectedType, setSelectedType] = useState('');
     const [trends, setTrends] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [viewMode, setViewMode] = useState('line');
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     useEffect(() => {
         const fetchBusinessTypes = async () => {
@@ -69,23 +77,20 @@ const GlobalSeasonalTrends = () => {
 
     const options = {
         chart: { 
-            type: 'line',
+            type: viewMode,
             toolbar: {
-                show: true,
-                tools: {
-                    download: true,
-                    selection: true,
-                    zoom: true,
-                    zoomin: true,
-                    zoomout: true,
-                    pan: true,
-                    reset: true
-                }
+                show: false
             },
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800
+            }
         },
+        colors: ['#FF9800'],
         stroke: {
             curve: 'smooth',
-            width: 3,
+            width: viewMode === 'line' ? 3 : 0,
             colors: [COLOR.accent],
         },
         grid: {
@@ -107,21 +112,22 @@ const GlobalSeasonalTrends = () => {
             labels: {
                 style: {
                     colors: COLOR.text,
+                },
+                formatter: function(value) {
+                    return value.toFixed(0);
                 }
             }
         },
-        title: { 
-            text: `Global Seasonal Trends (${selectedType})`,
-            style: {
-                color: COLOR.text,
-                fontWeight: 'bold'
-            }
-        },
-        tooltip: {
-            theme: 'light',
-            style: {
-                fontSize: '12px',
-                fontFamily: 'inherit'
+        fill: {
+            opacity: viewMode === 'line' ? 0.2 : 1,
+            type: viewMode === 'line' ? 'gradient' : 'solid',
+            gradient: {
+                shade: 'light',
+                type: "vertical",
+                shadeIntensity: 0.3,
+                opacityFrom: 0.7,
+                opacityTo: 0.2,
+                stops: [0, 90, 100]
             }
         },
         markers: {
@@ -129,19 +135,21 @@ const GlobalSeasonalTrends = () => {
             colors: [COLOR.primary],
             strokeColors: COLOR.accent,
             strokeWidth: 2,
-        },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                shade: 'light',
-                type: 'vertical',
-                shadeIntensity: 0.2,
-                gradientToColors: [COLOR.primary],
-                opacityFrom: 0.8,
-                opacityTo: 0.2,
-                stops: [0, 100]
+            hover: {
+                size: 7
             }
         },
+        dataLabels: {
+            enabled: false
+        },
+        tooltip: {
+            theme: 'light',
+            y: {
+                formatter: function(value) {
+                    return value.toFixed(1) + ' index'
+                }
+            }
+        }
     };
 
     const series = [
@@ -159,41 +167,106 @@ const GlobalSeasonalTrends = () => {
             border: `1px solid ${COLOR.border}`,
             backgroundColor: 'white'
         }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb:0 , p:0}}>
-                {/* <Typography variant="h6" sx={{ fontWeight: 'bold', color: COLOR.text }}>
-                    Global Seasonal Trends
-                </Typography> */}
-                <FormControl  sx={{ mt: 2, mb: 4, alignItems:'center', alignContent:'baseline' }}
-                >
-                <InputLabel id="business-type-select-label">Select Business Type</InputLabel>
-                <Select
-                    labelId="business-type-select-label"
-                    value={selectedType}
-                    label="Select Business Type"
-                    onChange={(e) => setSelectedType(e.target.value)}
-                    sx={{
-                        borderRadius: 1.5,
-                        color: COLOR.text,
-                        fontWeight: 'medium',
-                        '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: COLOR.border,
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: COLOR.accent,
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: COLOR.accent,
-                        },
-                    }}
-                >
-                    {businessTypes.map((type) => (
-                        <MenuItem key={type} value={type}>{type}</MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
+            <Box sx={{ 
+                display: 'flex', 
+                flexDirection: isMobile ? 'column' : 'row',
+                justifyContent: 'space-between', 
+                alignItems: isMobile ? 'flex-start' : 'center',
+                mb: 2,
+                gap: 2
+            }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <TrendingUpIcon sx={{ color: COLOR.accent, mr: 1 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: COLOR.text }}>
+                        Global Seasonal Trends
+                    </Typography>
+                </Box>
+                
+                <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: isMobile ? 'column' : 'row',
+                    alignItems: 'center', 
+                    gap: 2 
+                }}>
+                    <FormControl size="small" sx={{ minWidth: 200 }}>
+                        <InputLabel id="business-type-select-label">Business Type</InputLabel>
+                        <Select
+                            labelId="business-type-select-label"
+                            value={selectedType}
+                            label="Business Type"
+                            onChange={(e) => setSelectedType(e.target.value)}
+                            sx={{
+                                borderRadius: 1.5,
+                                color: COLOR.text,
+                                fontWeight: 'medium',
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: COLOR.border,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: COLOR.accent,
+                                },
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: COLOR.accent,
+                                },
+                            }}
+                        >
+                            {businessTypes.map((type) => (
+                                <MenuItem key={type} value={type}>{type}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    
+                    <ButtonGroup variant="outlined" size="small">
+                        <Button 
+                            onClick={() => setViewMode('line')}
+                            variant={viewMode === 'line' ? 'contained' : 'outlined'}
+                            sx={{ 
+                                bgcolor: viewMode === 'line' ? COLOR.primary : 'transparent',
+                                borderColor: COLOR.border,
+                                color: viewMode === 'line' ? COLOR.text : COLOR.text,
+                                '&:hover': {
+                                    bgcolor: viewMode === 'line' ? COLOR.primary : `${COLOR.light}80`,
+                                    borderColor: COLOR.border
+                                }
+                            }}
+                        >
+                            LINE
+                        </Button>
+                        <Button 
+                            onClick={() => setViewMode('area')}
+                            variant={viewMode === 'area' ? 'contained' : 'outlined'}
+                            sx={{ 
+                                bgcolor: viewMode === 'area' ? COLOR.primary : 'transparent',
+                                borderColor: COLOR.border,
+                                color: viewMode === 'area' ? COLOR.text : COLOR.text,
+                                '&:hover': {
+                                    bgcolor: viewMode === 'area' ? COLOR.primary : `${COLOR.light}80`,
+                                    borderColor: COLOR.border
+                                }
+                            }}
+                        >
+                            AREA
+                        </Button>
+                        <Button 
+                            onClick={() => setViewMode('bar')}
+                            variant={viewMode === 'bar' ? 'contained' : 'outlined'}
+                            sx={{ 
+                                bgcolor: viewMode === 'bar' ? COLOR.primary : 'transparent',
+                                borderColor: COLOR.border,
+                                color: viewMode === 'bar' ? COLOR.text : COLOR.text,
+                                '&:hover': {
+                                    bgcolor: viewMode === 'bar' ? COLOR.primary : `${COLOR.light}80`,
+                                    borderColor: COLOR.border
+                                }
+                            }}
+                        >
+                            BAR
+                        </Button>
+                    </ButtonGroup>
+                </Box>
             </Box>
 
-          
+            <Divider sx={{ mb: 2, borderColor: COLOR.border }} />
 
             {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', my: 6 }}>
@@ -201,13 +274,13 @@ const GlobalSeasonalTrends = () => {
                 </Box>
             ) : (
                 trends ? (
-                    <Box sx={{ mt: 0, mb: 0,p:0 }}>
+                    <Box sx={{ height: isMobile ? 300 : 350, width: '100%' }}>
                         <ReactApexChart 
                             options={options} 
                             series={series} 
-                            type="line" 
-                            height={300}
-                            //width={500}
+                            type={viewMode} 
+                            height="100%" 
+                            width="100%" 
                         />
                     </Box>
                 ) : (
